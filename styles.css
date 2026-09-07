@@ -164,3 +164,28 @@ body.color-only .range-row[for="featherRange"] { display: none !important; }
   .color-row { grid-template-columns: 44px 1fr; }
   .color-row .btn { grid-column: 1 / -1; }
 }
+
+
+/* Cloud project library */
+.projects-dialog-card { width: min(760px, 94vw); }
+.project-library-list { display: grid; gap: 9px; margin-top: 16px; }
+.project-library-empty { padding: 18px 4px; text-align: center; }
+.project-library-item { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 12px; background: #0f0f12; border: 1px solid var(--line); border-radius: 12px; }
+.project-library-item.active { border-color: var(--accent-2); box-shadow: 0 0 0 2px rgba(169,214,229,.08); }
+.project-library-main { min-width: 0; }
+.project-library-main strong { display: block; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.project-library-meta { display: flex; flex-wrap: wrap; gap: 6px 10px; color: var(--muted); font-size: 11px; margin-top: 5px; }
+.project-access-badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 999px; border: 1px solid #42424a; color: #d9d9df; }
+.project-access-badge.edit { border-color: rgba(61,201,149,.45); color: #8ce0be; }
+.project-access-badge.view { border-color: rgba(169,214,229,.45); color: var(--accent-2); }
+.project-library-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+.project-link-import { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 10px; }
+.project-library-footer { justify-content: space-between; }
+.danger-outline { color: #ff9ca7; border-color: rgba(255,107,122,.35); }
+.danger-outline:hover { border-color: rgba(255,107,122,.7); background: rgba(255,107,122,.08); }
+@media (max-width: 620px) {
+  .project-library-item { grid-template-columns: 1fr; }
+  .project-library-actions { justify-content: flex-start; }
+  .project-link-import .share-row { grid-template-columns: 1fr; }
+  .project-library-footer { flex-direction: column-reverse; align-items: stretch; }
+}
