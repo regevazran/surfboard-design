@@ -1,0 +1,9 @@
+{
+  "name": "Surfboard Color Studio",
+  "short_name": "Surf Colors",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0b0d",
+  "theme_color": "#111111",
+  "description": "Surfboard region masking, recoloring and shareable color projects"
+}
