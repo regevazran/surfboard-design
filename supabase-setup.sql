@@ -148,3 +148,7 @@ grant execute on function public.create_surfboard_project(text,text,text,jsonb) 
 grant execute on function public.get_surfboard_project(uuid,text) to anon, authenticated;
 grant execute on function public.save_surfboard_project(uuid,text,jsonb) to anon, authenticated;
 grant execute on function public.delete_surfboard_project(uuid,text) to anon, authenticated;
+
+-- Ask Supabase/PostgREST to refresh its schema cache so the RPC functions
+-- become available to the browser immediately after this script is run.
+notify pgrst, 'reload schema';
