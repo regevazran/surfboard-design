@@ -634,10 +634,13 @@
 
   function cloudErrorMessage(e){
     const msg=String(e?.message||e||"");
-    if(msg.includes("function")||msg.includes("schema cache"))return "פונקציות הענן לא הוגדרו. הרץ את supabase-setup.sql ב-Supabase.";
+    const code=String(e?.code||"");
+    if(code==="PGRST202" || /could not find the function|schema cache|function .* does not exist/i.test(msg)){
+      return "Supabase לא מכיר עדיין את פונקציות האפליקציה. הרץ מחדש את כל supabase-setup.sql ב-SQL Editor, המתן כמה שניות ונסה שוב.";
+    }
     if(msg.includes("Failed to fetch"))return "לא ניתן להתחבר ל-Supabase. בדוק את config.js ואת החיבור לאינטרנט.";
     if(msg.includes("View-only"))return "זהו קישור לצביעה בלבד. ניתן לשמור כעותק חדש.";
-    return `שגיאת ענן: ${msg}`;
+    return `שגיאת ענן${code ? ` (${code})` : ""}: ${msg}`;
   }
 
   async function saveAsCopy(){
