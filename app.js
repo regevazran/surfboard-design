@@ -3,7 +3,7 @@
 
   const $ = (id) => document.getElementById(id);
   const els = {
-    newBtn: $("newBtn"), importProjectBtn: $("importProjectBtn"), exportProjectBtn: $("exportProjectBtn"),
+    newBtn: $("newBtn"), myProjectsBtn: $("myProjectsBtn"), importProjectBtn: $("importProjectBtn"), exportProjectBtn: $("exportProjectBtn"),
     saveCloudBtn: $("saveCloudBtn"), shareBtn: $("shareBtn"), shareEditBtn: $("shareEditBtn"),
     uploadBtn: $("uploadBtn"), emptyUploadBtn: $("emptyUploadBtn"), saveAsCopyBtn: $("saveAsCopyBtn"),
     imageInput: $("imageInput"), projectInput: $("projectInput"), projectName: $("projectName"),
@@ -18,13 +18,17 @@
     zoomOutBtn: $("zoomOutBtn"), zoomInBtn: $("zoomInBtn"), zoomResetBtn: $("zoomResetBtn"), fitBtn: $("fitBtn"),
     canvasViewport: $("canvasViewport"), canvasStage: $("canvasStage"), renderCanvas: $("renderCanvas"), overlayCanvas: $("overlayCanvas"), emptyState: $("emptyState"), uploadDrop: $("uploadDrop"),
     addVariantBtn: $("addVariantBtn"), compareBtn: $("compareBtn"), exportPngBtn: $("exportPngBtn"), compareDialog: $("compareDialog"), compareGrid: $("compareGrid"), clearVariantsBtn: $("clearVariantsBtn"),
-    shareDialog: $("shareDialog"), shareDialogText: $("shareDialogText"), shareUrl: $("shareUrl"), copyShareBtn: $("copyShareBtn"), nativeShareBtn: $("nativeShareBtn"), toast: $("toast")
+    shareDialog: $("shareDialog"), shareDialogText: $("shareDialogText"), shareUrl: $("shareUrl"), copyShareBtn: $("copyShareBtn"), nativeShareBtn: $("nativeShareBtn"),
+    projectsDialog: $("projectsDialog"), projectLibraryList: $("projectLibraryList"), projectLibraryEmpty: $("projectLibraryEmpty"),
+    projectLinkInput: $("projectLinkInput"), openProjectLinkBtn: $("openProjectLinkBtn"), clearProjectLibraryBtn: $("clearProjectLibraryBtn"), toast: $("toast")
   };
 
   const renderCtx = els.renderCanvas.getContext("2d", { willReadFrequently: true });
   const overlayCtx = els.overlayCanvas.getContext("2d");
   const MAX_IMAGE_SIDE = 1800;
   const HISTORY_LIMIT = 24;
+  const PROJECT_LIBRARY_KEY = "surfboardColorStudio.projectLibrary.v1";
+  const PROJECT_LIBRARY_LIMIT = 50;
 
   const state = {
     imageDataUrl: null,
@@ -90,19 +94,150 @@
     els.cloudDot.className = `status-dot${type ? ` ${type}` : ""}`;
   }
 
+
+  function readProjectLibrary() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(PROJECT_LIBRARY_KEY) || "[]");
+      return Array.isArray(parsed) ? parsed.filter(p => p && p.id && p.token) : [];
+    } catch (e) {
+      console.warn("Could not read project library", e);
+      return [];
+    }
+  }
+
+  function writeProjectLibrary(items) {
+    try {
+      localStorage.setItem(PROJECT_LIBRARY_KEY, JSON.stringify(items.slice(0, PROJECT_LIBRARY_LIMIT)));
+      return true;
+    } catch (e) {
+      console.warn("Could not write project library", e);
+      showToast("×”×“×¤×“×¤×Ÿ ×œ× ××¤×©×¨ ×œ×©×ž×•×¨ ××ª ×¨×©×™×ž×ª ×”×¤×¨×•×™×§×˜×™× ×”×ž×§×•×ž×™×ª", true);
+      return false;
+    }
+  }
+
+  function rememberCloudProject({ id = state.projectId, name = currentProjectName(), access = state.access, token = null } = {}) {
+    if (!id || !["edit", "view"].includes(access)) return;
+    const preferredToken = token || (access === "edit" ? state.editToken : state.viewToken) || state.currentToken;
+    if (!preferredToken) return;
+
+    const items = readProjectLibrary();
+    const existing = items.find(p => p.id === id);
+    // Never downgrade an edit entry to view-only when the same project is later opened from a view link.
+    const finalAccess = existing?.access === "edit" && access !== "edit" ? "edit" : access;
+    const finalToken = finalAccess === "edit" && existing?.access === "edit" ? existing.token : preferredToken;
+    const now = new Date().toISOString();
+    const entry = {
+      id,
+      name: name || existing?.name || "×¤×¨×•×™×§×˜ ×’×œ×©×Ÿ",
+      access: finalAccess,
+      token: finalToken,
+      updatedAt: now,
+      firstSeenAt: existing?.firstSeenAt || now
+    };
+    const next = [entry, ...items.filter(p => p.id !== id)];
+    writeProjectLibrary(next);
+  }
+
+  function forgetCloudProject(id) {
+    writeProjectLibrary(readProjectLibrary().filter(p => p.id !== id));
+    renderProjectLibrary();
+  }
+
+  function formatProjectDate(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    try { return new Intl.DateTimeFormat("he-IL", { dateStyle: "short", timeStyle: "short" }).format(d); }
+    catch { return d.toLocaleString(); }
+  }
+
+  async function copyText(text) {
+    try { await navigator.clipboard.writeText(text); }
+    catch {
+      const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+    }
+  }
+
+  function projectEntryUrl(entry) {
+    return buildUrl(entry.id, entry.token, entry.access === "edit" ? "edit" : "colors");
+  }
+
+  function openLibraryProject(entry) {
+    if (state.dirty && !confirm("×™×© ×©×™× ×•×™×™× ×©×œ× × ×©×ž×¨×• ×‘×¤×¨×•×™×§×˜ ×”× ×•×›×—×™. ×œ×¤×ª×•×— ×¤×¨×•×™×§×˜ ××—×¨ ×‘×›×œ ×–××ª?")) return;
+    location.href = projectEntryUrl(entry);
+  }
+
+  function renderProjectLibrary() {
+    if (!els.projectLibraryList) return;
+    const items = readProjectLibrary();
+    els.projectLibraryList.innerHTML = "";
+    els.projectLibraryEmpty.hidden = items.length > 0;
+    items.forEach(entry => {
+      const row = document.createElement("div");
+      row.className = `project-library-item${entry.id === state.projectId ? " active" : ""}`;
+      const accessLabel = entry.access === "edit" ? "×¢×¨×™×›×”" : "×¦×‘×™×¢×” ×‘×œ×‘×“";
+      const time = formatProjectDate(entry.updatedAt);
+      row.innerHTML = `
+        <div class="project-library-main">
+          <strong>${escapeHtml(entry.name || "×¤×¨×•×™×§×˜ ×’×œ×©×Ÿ")}</strong>
+          <div class="project-library-meta">
+            <span class="project-access-badge ${entry.access === "edit" ? "edit" : "view"}">${accessLabel}</span>
+            ${time ? `<span>×¢×•×“×›×Ÿ ×‘×¨×©×™×ž×”: ${escapeHtml(time)}</span>` : ""}
+            ${entry.id === state.projectId ? "<span>×¤×ª×•×— ×›×¢×ª</span>" : ""}
+          </div>
+        </div>
+        <div class="project-library-actions">
+          <button class="btn small primary" type="button" data-action="open">×¤×ª×—</button>
+          <button class="btn small" type="button" data-action="copy">×”×¢×ª×§ ×§×™×©×•×¨</button>
+          <button class="btn small danger-outline" type="button" data-action="forget">×”×¡×¨ ×ž×”×¨×©×™×ž×”</button>
+        </div>`;
+      row.querySelector('[data-action="open"]').addEventListener("click", () => openLibraryProject(entry));
+      row.querySelector('[data-action="copy"]').addEventListener("click", async () => { await copyText(projectEntryUrl(entry)); showToast("×§×™×©×•×¨ ×”×¤×¨×•×™×§×˜ ×”×•×¢×ª×§"); });
+      row.querySelector('[data-action="forget"]').addEventListener("click", () => {
+        if (confirm("×œ×”×¡×™×¨ ××ª ×”×¤×¨×•×™×§×˜ ×ž×”×¨×©×™×ž×” ×‘×ž×›×©×™×¨ ×”×–×”? ×”×¤×¨×•×™×§×˜ ×¢×¦×ž×• ×œ× ×™×™×ž×—×§ ×ž×”×¢× ×Ÿ.")) forgetCloudProject(entry.id);
+      });
+      els.projectLibraryList.appendChild(row);
+    });
+  }
+
+  function showProjectLibrary() {
+    renderProjectLibrary();
+    els.projectLinkInput.value = "";
+    els.projectsDialog.showModal();
+  }
+
+  function openProjectFromPastedLink() {
+    const raw = (els.projectLinkInput.value || "").trim();
+    if (!raw) { showToast("×”×“×‘×§ ×§×™×©×•×¨ ×œ×¤×¨×•×™×§×˜", true); return; }
+    try {
+      const u = new URL(raw, location.href);
+      const id = u.searchParams.get("p");
+      const hash = new URLSearchParams(u.hash.replace(/^#/, ""));
+      const token = hash.get("t");
+      const mode = u.searchParams.get("mode") || "colors";
+      if (!id || !token) throw new Error("Missing project data");
+      if (state.dirty && !confirm("×™×© ×©×™× ×•×™×™× ×©×œ× × ×©×ž×¨×• ×‘×¤×¨×•×™×§×˜ ×”× ×•×›×—×™. ×œ×¤×ª×•×— ××ª ×”×§×™×©×•×¨ ×‘×›×œ ×–××ª?")) return;
+      location.href = buildUrl(id, token, mode === "edit" ? "edit" : "colors");
+    } catch (e) {
+      showToast("×”×§×™×©×•×¨ ××™× ×• × ×¨××” ×›×ž×• ×§×™×©×•×¨ ×ª×§×™×Ÿ ×©×œ ×¤×¨×•×™×§×˜", true);
+    }
+  }
+
   function initSupabase() {
     const cfg = window.SURFBOARD_APP_CONFIG || {};
     const browserKey = cfg.supabaseKey || cfg.supabaseAnonKey || "";
     if (cfg.supabaseUrl && browserKey && window.supabase?.createClient) {
       state.supabase = window.supabase.createClient(cfg.supabaseUrl, browserKey);
-      setCloudStatus("ענן מוכן", "ok");
+      setCloudStatus("×¢× ×Ÿ ×ž×•×›×Ÿ", "ok");
     } else {
-      setCloudStatus("מצב מקומי — הגדר Supabase לשיתוף", "warn");
+      setCloudStatus("×ž×¦×‘ ×ž×§×•×ž×™ â€” ×”×’×“×¨ Supabase ×œ×©×™×ª×•×£", "warn");
     }
   }
 
   function currentProjectName() {
-    return (els.projectName.value || "גלשן חדש").trim() || "גלשן חדש";
+    return (els.projectName.value || "×’×œ×©×Ÿ ×—×“×©").trim() || "×’×œ×©×Ÿ ×—×“×©";
   }
 
   function updateAccessUi() {
@@ -121,12 +256,12 @@
     const colorOnly = state.mode === "colors" || state.access === "view";
     document.body.classList.toggle("color-only", colorOnly);
     if (colorOnly) {
-      els.projectSubtitle.textContent = "קישור לצביעה בלבד — המקור אינו משתנה";
+      els.projectSubtitle.textContent = "×§×™×©×•×¨ ×œ×¦×‘×™×¢×” ×‘×œ×‘×“ â€” ×”×ž×§×•×¨ ××™× ×• ×ž×©×ª× ×”";
       setTool("pan");
     } else if (state.projectId) {
-      els.projectSubtitle.textContent = state.access === "edit" ? "פרויקט ענן — הרשאת עריכה" : "פרויקט מקומי";
+      els.projectSubtitle.textContent = state.access === "edit" ? "×¤×¨×•×™×§×˜ ×¢× ×Ÿ â€” ×”×¨×©××ª ×¢×¨×™×›×”" : "×¤×¨×•×™×§×˜ ×ž×§×•×ž×™";
     } else {
-      els.projectSubtitle.textContent = "פרויקט מקומי";
+      els.projectSubtitle.textContent = "×¤×¨×•×™×§×˜ ×ž×§×•×ž×™";
     }
     renderRegionEditor();
   }
@@ -134,7 +269,7 @@
   function setDirty(v = true) {
     state.dirty = v;
     if (state.access === "edit" && state.projectId) {
-      setCloudStatus(v ? "שינויים שלא נשמרו" : "שמור בענן", v ? "warn" : "ok");
+      setCloudStatus(v ? "×©×™× ×•×™×™× ×©×œ× × ×©×ž×¨×•" : "×©×ž×•×¨ ×‘×¢× ×Ÿ", v ? "warn" : "ok");
     }
   }
 
@@ -145,8 +280,8 @@
     return c;
   }
 
-  function newRegion(name = `אזור ${state.regions.length + 1}`, color = "#A9D6E5") {
-    if (!state.sourceImage) { showToast("יש להעלות תמונה לפני יצירת אזור", true); return null; }
+  function newRegion(name = `××–×•×¨ ${state.regions.length + 1}`, color = "#A9D6E5") {
+    if (!state.sourceImage) { showToast("×™×© ×œ×”×¢×œ×•×ª ×ª×ž×•× ×” ×œ×¤× ×™ ×™×¦×™×¨×ª ××–×•×¨", true); return null; }
     const maskCanvas = createMaskCanvas();
     const region = {
       id: uuid(), name, color: color.toUpperCase(), visible: true, intensity: 1, feather: 0,
@@ -171,8 +306,8 @@
       item.className = `region-item${r.id === state.selectedRegionId ? " active" : ""}`;
       item.innerHTML = `
         <span class="swatch" style="background:${escapeHtml(r.color)}"></span>
-        <span class="region-title"><strong>${escapeHtml(r.name)}</strong><span>${r.visible ? "פעיל" : "מוסתר"}</span></span>
-        <span class="eye" aria-label="${r.visible ? "הסתר" : "הצג"}">${r.visible ? "◉" : "○"}</span>`;
+        <span class="region-title"><strong>${escapeHtml(r.name)}</strong><span>${r.visible ? "×¤×¢×™×œ" : "×ž×•×¡×ª×¨"}</span></span>
+        <span class="eye" aria-label="${r.visible ? "×”×¡×ª×¨" : "×”×¦×’"}">${r.visible ? "â—‰" : "â—‹"}</span>`;
       item.addEventListener("click", (e) => {
         const eye = e.target.closest(".eye");
         if (eye) {
@@ -215,13 +350,13 @@
 
   async function loadImageFile(file) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) { showToast("הקובץ אינו תמונה נתמכת", true); return; }
+    if (!file.type.startsWith("image/")) { showToast("×”×§×•×‘×¥ ××™× ×• ×ª×ž×•× ×” × ×ª×ž×›×ª", true); return; }
     const rawUrl = await fileToDataUrl(file);
     const compressed = await normalizeImageDataUrl(rawUrl, MAX_IMAGE_SIDE, 0.94);
     await loadImageDataUrl(compressed, { resetProject: true });
-    els.projectName.value = file.name.replace(/\.[^.]+$/, "") || "גלשן חדש";
+    els.projectName.value = file.name.replace(/\.[^.]+$/, "") || "×’×œ×©×Ÿ ×—×“×©";
     setDirty(true);
-    showToast("התמונה נטענה. כעת הוסף אזורים וסמן אותם.");
+    showToast("×”×ª×ž×•× ×” × ×˜×¢× ×”. ×›×¢×ª ×”×•×¡×£ ××–×•×¨×™× ×•×¡×ž×Ÿ ××•×ª×.");
   }
 
   function fileToDataUrl(file) {
@@ -503,7 +638,7 @@
       if(x>0)add(p-1); if(x<w-1)add(p+1); if(y>0)add(p-w); if(y<h-1)add(p+w);
     }
     r.maskCtx.putImageData(img,0,0); invalidateMask(r); setDirty(true); commitHistory(); requestRender(); updateOverlay();
-    showToast(`Magic Wand סימן ${head.toLocaleString()} פיקסלים שנבדקו`);
+    showToast(`Magic Wand ×¡×™×ž×Ÿ ${head.toLocaleString()} ×¤×™×§×¡×œ×™× ×©× ×‘×“×§×•`);
   }
 
   function sampleColor(point) {
@@ -513,7 +648,7 @@
     const hex=`#${[pix[0],pix[1],pix[2]].map(v=>v.toString(16).padStart(2,"0")).join("")}`.toUpperCase();
     const r=selectedRegion();
     if (r) { r.color=hex; els.regionColor.value=hex; els.regionHex.value=hex; renderRegionList(); setDirty(true); commitHistory(); requestRender(); }
-    else { navigator.clipboard?.writeText(hex); showToast(`${hex} הועתק`); }
+    else { navigator.clipboard?.writeText(hex); showToast(`${hex} ×”×•×¢×ª×§`); }
     setTool("pan");
   }
 
@@ -533,12 +668,12 @@
   async function restoreProject(projectData, imageDataUrl, { keepCloud = true } = {}) {
     if (!imageDataUrl) throw new Error("Project has no image");
     await loadImageDataUrl(imageDataUrl,{resetProject:!keepCloud});
-    els.projectName.value=projectData.name||"גלשן";
+    els.projectName.value=projectData.name||"×’×œ×©×Ÿ";
     state.regions=[];
     for (const rd of (projectData.regions||[])) {
       const maskCanvas=createMaskCanvas(); const maskCtx=maskCanvas.getContext("2d",{willReadFrequently:true});
       if (rd.mask) { const mi=await loadHtmlImage(rd.mask); maskCtx.drawImage(mi,0,0,state.width,state.height); }
-      state.regions.push({id:rd.id||uuid(),name:rd.name||"אזור",color:(rd.color||"#A9D6E5").toUpperCase(),visible:rd.visible!==false,intensity:rd.intensity??1,feather:rd.feather||0,maskCanvas,maskCtx,avgLightness:null,maskCache:null});
+      state.regions.push({id:rd.id||uuid(),name:rd.name||"××–×•×¨",color:(rd.color||"#A9D6E5").toUpperCase(),visible:rd.visible!==false,intensity:rd.intensity??1,feather:rd.feather||0,maskCanvas,maskCtx,avgLightness:null,maskCache:null});
     }
     state.selectedRegionId=state.regions[0]?.id||null;
     state.history=[];state.historyIndex=-1;state.variants=[];state.polygonPoints=[];
@@ -587,12 +722,12 @@
   function safeFilename(s){return s.replace(/[\\/:*?"<>|]+/g,"-").trim()||"surfboard";}
 
   function exportProjectBackup(){
-    if(!state.sourceImage)return;const obj=serializeProject(true);const blob=new Blob([JSON.stringify(obj)],{type:"application/json"});downloadBlob(blob,`${safeFilename(currentProjectName())}.surfboard.json`);showToast("קובץ גיבוי נוצר");
+    if(!state.sourceImage)return;const obj=serializeProject(true);const blob=new Blob([JSON.stringify(obj)],{type:"application/json"});downloadBlob(blob,`${safeFilename(currentProjectName())}.surfboard.json`);showToast("×§×•×‘×¥ ×’×™×‘×•×™ × ×•×¦×¨");
   }
 
   async function importProjectBackup(file){
-    try{const text=await file.text();const obj=JSON.parse(text);if(!obj.imageData||!Array.isArray(obj.regions))throw new Error("Invalid project");state.projectId=null;state.editToken=null;state.viewToken=null;state.currentToken=null;state.access="local";state.mode="edit";await restoreProject(obj,obj.imageData,{keepCloud:false});showToast("הפרויקט נטען מהגיבוי");}
-    catch(e){console.error(e);showToast("לא ניתן לקרוא את קובץ הפרויקט",true);}
+    try{const text=await file.text();const obj=JSON.parse(text);if(!obj.imageData||!Array.isArray(obj.regions))throw new Error("Invalid project");state.projectId=null;state.editToken=null;state.viewToken=null;state.currentToken=null;state.access="local";state.mode="edit";await restoreProject(obj,obj.imageData,{keepCloud:false});showToast("×”×¤×¨×•×™×§×˜ × ×˜×¢×Ÿ ×ž×”×’×™×‘×•×™");}
+    catch(e){console.error(e);showToast("×œ× × ×™×ª×Ÿ ×œ×§×¨×•× ××ª ×§×•×‘×¥ ×”×¤×¨×•×™×§×˜",true);}
   }
 
   function cloudPayload(){return serializeProject(false);}
@@ -611,40 +746,44 @@
   async function createCloudProject({switchToNew=true}={}){
     if(!state.supabase)throw new Error("Supabase is not configured");if(!state.sourceImage)throw new Error("No image");
     const editToken=uuid()+uuid(), viewToken=await deriveViewToken(editToken); const image=await ensureCloudImage();
-    setCloudStatus("שומר בענן…","warn");
+    setCloudStatus("×©×•×ž×¨ ×‘×¢× ×Ÿâ€¦","warn");
     const {data,error}=await state.supabase.rpc("create_surfboard_project",{p_edit_token:editToken,p_view_token:viewToken,p_image_data:image,p_project_data:cloudPayload()});
     if(error)throw error;
     const id=typeof data==="string"?data:(Array.isArray(data)?data[0]?.create_surfboard_project:data);
     if(!id)throw new Error("Cloud project ID was not returned");
-    if(switchToNew){state.projectId=id;state.editToken=editToken;state.viewToken=viewToken;state.currentToken=editToken;state.access="edit";state.mode="edit";setDirty(false);history.replaceState(null,"",buildUrl(id,editToken,"edit"));updateAccessUi();}
-    setCloudStatus("שמור בענן","ok");
+    if(switchToNew){
+      state.projectId=id;state.editToken=editToken;state.viewToken=viewToken;state.currentToken=editToken;state.access="edit";state.mode="edit";
+      setDirty(false);history.replaceState(null,"",buildUrl(id,editToken,"edit"));updateAccessUi();
+      rememberCloudProject({id,name:currentProjectName(),access:"edit",token:editToken});
+    }
+    setCloudStatus("×©×ž×•×¨ ×‘×¢× ×Ÿ","ok");
     return {id,editToken,viewToken};
   }
 
   async function saveCloud(){
     try{
       if(state.access==="view")throw new Error("View-only link");
-      if(!state.projectId){await createCloudProject();showToast("הפרויקט נשמר בענן");return;}
+      if(!state.projectId){await createCloudProject();showToast("×”×¤×¨×•×™×§×˜ × ×©×ž×¨ ×‘×¢× ×Ÿ");return;}
       if(!state.editToken)throw new Error("Missing edit token");
-      setCloudStatus("שומר בענן…","warn");
+      setCloudStatus("×©×•×ž×¨ ×‘×¢× ×Ÿâ€¦","warn");
       const {data,error}=await state.supabase.rpc("save_surfboard_project",{p_id:state.projectId,p_edit_token:state.editToken,p_project_data:cloudPayload()});
-      if(error)throw error;if(data!==true)throw new Error("Save rejected");setDirty(false);showToast("השינויים נשמרו בענן");
-    }catch(e){console.error(e);setCloudStatus("שגיאת שמירה","err");showToast(cloudErrorMessage(e),true);}
+      if(error)throw error;if(data!==true)throw new Error("Save rejected");setDirty(false);rememberCloudProject();showToast("×”×©×™× ×•×™×™× × ×©×ž×¨×• ×‘×¢× ×Ÿ");
+    }catch(e){console.error(e);setCloudStatus("×©×’×™××ª ×©×ž×™×¨×”","err");showToast(cloudErrorMessage(e),true);}
   }
 
   function cloudErrorMessage(e){
     const msg=String(e?.message||e||"");
     const code=String(e?.code||"");
     if(code==="PGRST202" || /could not find the function|schema cache|function .* does not exist/i.test(msg)){
-      return "Supabase לא מכיר עדיין את פונקציות האפליקציה. הרץ מחדש את כל supabase-setup.sql ב-SQL Editor, המתן כמה שניות ונסה שוב.";
+      return "Supabase ×œ× ×ž×›×™×¨ ×¢×“×™×™×Ÿ ××ª ×¤×•× ×§×¦×™×•×ª ×”××¤×œ×™×§×¦×™×”. ×”×¨×¥ ×ž×—×“×© ××ª ×›×œ supabase-setup.sql ×‘-SQL Editor, ×”×ž×ª×Ÿ ×›×ž×” ×©× ×™×•×ª ×•× ×¡×” ×©×•×‘.";
     }
-    if(msg.includes("Failed to fetch"))return "לא ניתן להתחבר ל-Supabase. בדוק את config.js ואת החיבור לאינטרנט.";
-    if(msg.includes("View-only"))return "זהו קישור לצביעה בלבד. ניתן לשמור כעותק חדש.";
-    return `שגיאת ענן${code ? ` (${code})` : ""}: ${msg}`;
+    if(msg.includes("Failed to fetch"))return "×œ× × ×™×ª×Ÿ ×œ×”×ª×—×‘×¨ ×œ-Supabase. ×‘×“×•×§ ××ª config.js ×•××ª ×”×—×™×‘×•×¨ ×œ××™× ×˜×¨× ×˜.";
+    if(msg.includes("View-only"))return "×–×”×• ×§×™×©×•×¨ ×œ×¦×‘×™×¢×” ×‘×œ×‘×“. × ×™×ª×Ÿ ×œ×©×ž×•×¨ ×›×¢×•×ª×§ ×—×“×©.";
+    return `×©×’×™××ª ×¢× ×Ÿ${code ? ` (${code})` : ""}: ${msg}`;
   }
 
   async function saveAsCopy(){
-    try{const created=await createCloudProject({switchToNew:true});state.projectId=created.id;state.editToken=created.editToken;state.viewToken=created.viewToken;state.currentToken=created.editToken;state.access="edit";state.mode="edit";history.replaceState(null,"",buildUrl(created.id,created.editToken,"edit"));updateAccessUi();showToast("נוצר עותק חדש עם הרשאת עריכה");}
+    try{await createCloudProject({switchToNew:true});rememberCloudProject();showToast("× ×•×¦×¨ ×¢×•×ª×§ ×—×“×© ×¢× ×”×¨×©××ª ×¢×¨×™×›×”");}
     catch(e){console.error(e);showToast(cloudErrorMessage(e),true);}
   }
 
@@ -667,11 +806,11 @@
       if(kind==="edit"){
         if(state.access!=="edit"||!state.editToken)throw new Error("No edit access");
         url=buildUrl(state.projectId,state.editToken,"edit");
-        els.shareDialogText.textContent="הקישור נותן הרשאת עריכה מלאה של האזורים והצבעים. שתף אותו רק עם מי שצריך לערוך את הפרויקט.";
+        els.shareDialogText.textContent="×”×§×™×©×•×¨ × ×•×ª×Ÿ ×”×¨×©××ª ×¢×¨×™×›×” ×ž×œ××” ×©×œ ×”××–×•×¨×™× ×•×”×¦×‘×¢×™×. ×©×ª×£ ××•×ª×• ×¨×§ ×¢× ×ž×™ ×©×¦×¨×™×š ×œ×¢×¨×•×š ××ª ×”×¤×¨×•×™×§×˜.";
       }else{
         if(!state.viewToken)throw new Error("No view token");
         url=buildUrl(state.projectId,state.viewToken,"colors");
-        els.shareDialogText.textContent="הקישור מאפשר לשחק עם הצבעים ולייצא תמונה, אך אינו יכול לשמור מעל הפרויקט המקורי.";
+        els.shareDialogText.textContent="×”×§×™×©×•×¨ ×ž××¤×©×¨ ×œ×©×—×§ ×¢× ×”×¦×‘×¢×™× ×•×œ×™×™×¦× ×ª×ž×•× ×”, ××š ××™× ×• ×™×›×•×œ ×œ×©×ž×•×¨ ×ž×¢×œ ×”×¤×¨×•×™×§×˜ ×”×ž×§×•×¨×™.";
       }
       els.shareUrl.value=url;els.shareDialog.showModal();
     }catch(e){console.error(e);showToast(cloudErrorMessage(e),true);}
@@ -680,32 +819,34 @@
   async function loadCloudFromUrl(){
     const p=new URLSearchParams(location.search);const id=p.get("p");if(!id)return;
     const hash=new URLSearchParams(location.hash.replace(/^#/,""));const token=hash.get("t");const mode=p.get("mode")||"colors";
-    if(!token){showToast("בקישור חסר מפתח גישה",true);return;}
-    if(!state.supabase){showToast("הפרויקט מקושר לענן, אך Supabase לא הוגדר ב-config.js",true);return;}
-    setCloudStatus("טוען מהענן…","warn");
+    if(!token){showToast("×‘×§×™×©×•×¨ ×—×¡×¨ ×ž×¤×ª×— ×’×™×©×”",true);return;}
+    if(!state.supabase){showToast("×”×¤×¨×•×™×§×˜ ×ž×§×•×©×¨ ×œ×¢× ×Ÿ, ××š Supabase ×œ× ×”×•×’×“×¨ ×‘-config.js",true);return;}
+    setCloudStatus("×˜×•×¢×Ÿ ×ž×”×¢× ×Ÿâ€¦","warn");
     const {data,error}=await state.supabase.rpc("get_surfboard_project",{p_id:id,p_token:token});
-    if(error){console.error(error);showToast(cloudErrorMessage(error),true);setCloudStatus("שגיאת טעינה","err");return;}
-    const row=Array.isArray(data)?data[0]:data;if(!row){showToast("הקישור אינו תקין או שאין הרשאה לפרויקט",true);setCloudStatus("אין הרשאה","err");return;}
+    if(error){console.error(error);showToast(cloudErrorMessage(error),true);setCloudStatus("×©×’×™××ª ×˜×¢×™× ×”","err");return;}
+    const row=Array.isArray(data)?data[0]:data;if(!row){showToast("×”×§×™×©×•×¨ ××™× ×• ×ª×§×™×Ÿ ××• ×©××™×Ÿ ×”×¨×©××” ×œ×¤×¨×•×™×§×˜",true);setCloudStatus("××™×Ÿ ×”×¨×©××”","err");return;}
     state.projectId=id;state.currentToken=token;state.access=row.access_level||"view";state.mode=state.access==="view"?"colors":mode;
     state.editToken=state.access==="edit"?token:null;state.viewToken=state.access==="view"?token:(state.access==="edit"?await deriveViewToken(token):null);
     await restoreProject(row.project_data,row.image_data,{keepCloud:true});
     state.projectId=id;state.currentToken=token;state.access=row.access_level||"view";state.mode=state.access==="view"?"colors":mode;state.editToken=state.access==="edit"?token:null;state.viewToken=state.access==="view"?token:(state.access==="edit"?await deriveViewToken(token):null);
-    setDirty(false);setCloudStatus(state.access==="edit"?"שמור בענן":"קישור לצביעה בלבד","ok");updateAccessUi();showToast("הפרויקט נטען מהענן");
+    setDirty(false);setCloudStatus(state.access==="edit"?"×©×ž×•×¨ ×‘×¢× ×Ÿ":"×§×™×©×•×¨ ×œ×¦×‘×™×¢×” ×‘×œ×‘×“","ok");updateAccessUi();
+    rememberCloudProject({id:state.projectId,name:currentProjectName(),access:state.access,token:state.access==="edit"?state.editToken:state.viewToken});
+    showToast("×”×¤×¨×•×™×§×˜ × ×˜×¢×Ÿ ×ž×”×¢× ×Ÿ");
   }
 
   function addVariant(){
     if(!state.sourceImage)return;requestRender(true).then(()=>{
       if(state.variants.length>=4)state.variants.shift();
-      state.variants.push({name:`גרסה ${state.variants.length+1}`,dataUrl:els.renderCanvas.toDataURL("image/png")});
-      els.compareBtn.disabled=false;showToast("הגרסה נוספה להשוואה");
+      state.variants.push({name:`×’×¨×¡×” ${state.variants.length+1}`,dataUrl:els.renderCanvas.toDataURL("image/png")});
+      els.compareBtn.disabled=false;showToast("×”×’×¨×¡×” × ×•×¡×¤×” ×œ×”×©×•×•××”");
     });
   }
 
   function showCompare(){
     els.compareGrid.innerHTML="";
-    if(!state.variants.length){els.compareGrid.innerHTML='<p class="empty-note">עדיין לא נשמרו גרסאות להשוואה.</p>';}
+    if(!state.variants.length){els.compareGrid.innerHTML='<p class="empty-note">×¢×“×™×™×Ÿ ×œ× × ×©×ž×¨×• ×’×¨×¡××•×ª ×œ×”×©×•×•××”.</p>';}
     state.variants.forEach((v,i)=>{
-      const card=document.createElement("div");card.className="compare-card";card.innerHTML=`<img src="${v.dataUrl}" alt="${escapeHtml(v.name)}"><input class="text-input" value="${escapeHtml(v.name)}" aria-label="שם גרסה">`;
+      const card=document.createElement("div");card.className="compare-card";card.innerHTML=`<img src="${v.dataUrl}" alt="${escapeHtml(v.name)}"><input class="text-input" value="${escapeHtml(v.name)}" aria-label="×©× ×’×¨×¡×”">`;
       card.querySelector("input").addEventListener("input",e=>v.name=e.target.value);els.compareGrid.appendChild(card);
     });
     els.compareDialog.showModal();
@@ -720,15 +861,22 @@
   function deleteRegion(){const i=state.regions.findIndex(r=>r.id===state.selectedRegionId);if(i<0)return;state.regions.splice(i,1);state.selectedRegionId=state.regions[Math.max(0,i-1)]?.id||null;renderRegionList();renderRegionEditor();setDirty(true);commitHistory();requestRender();updateOverlay();}
 
   function resetApp(){
-    if(state.dirty&&!confirm("יש שינויים שלא נשמרו. להתחיל פרויקט חדש?"))return;
+    if(state.dirty&&!confirm("×™×© ×©×™× ×•×™×™× ×©×œ× × ×©×ž×¨×•. ×œ×”×ª×—×™×œ ×¤×¨×•×™×§×˜ ×—×“×©?"))return;
     Object.assign(state,{imageDataUrl:null,sourceImage:null,sourcePixels:null,width:0,height:0,regions:[],selectedRegionId:null,polygonPoints:[],history:[],historyIndex:-1,variants:[],projectId:null,editToken:null,viewToken:null,currentToken:null,access:"local",mode:"edit",dirty:false});
-    els.canvasStage.hidden=true;els.emptyState.hidden=false;els.projectName.value="גלשן חדש";history.replaceState(null,"",baseUrl());renderRegionList();renderRegionEditor();updateAccessUi();setCloudStatus(state.supabase?"ענן מוכן":"מצב מקומי — הגדר Supabase לשיתוף",state.supabase?"ok":"warn");
+    els.canvasStage.hidden=true;els.emptyState.hidden=false;els.projectName.value="×’×œ×©×Ÿ ×—×“×©";history.replaceState(null,"",baseUrl());renderRegionList();renderRegionEditor();updateAccessUi();setCloudStatus(state.supabase?"×¢× ×Ÿ ×ž×•×›×Ÿ":"×ž×¦×‘ ×ž×§×•×ž×™ â€” ×”×’×“×¨ Supabase ×œ×©×™×ª×•×£",state.supabase?"ok":"warn");
   }
 
   function bindEvents(){
     els.uploadBtn.addEventListener("click",()=>els.imageInput.click());els.emptyUploadBtn.addEventListener("click",()=>els.imageInput.click());
     els.imageInput.addEventListener("change",e=>{loadImageFile(e.target.files[0]);e.target.value="";});
     els.newBtn.addEventListener("click",resetApp);
+    els.myProjectsBtn.addEventListener("click",showProjectLibrary);
+    els.openProjectLinkBtn.addEventListener("click",openProjectFromPastedLink);
+    els.projectLinkInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();openProjectFromPastedLink();}});
+    els.clearProjectLibraryBtn.addEventListener("click",()=>{
+      if(!readProjectLibrary().length)return;
+      if(confirm("×œ× ×§×•×ª ××ª ×›×œ ×¨×©×™×ž×ª ×”×¤×¨×•×™×§×˜×™× ×ž×”×ž×›×©×™×¨ ×”×–×”? ×”×¤×¨×•×™×§×˜×™× ×¢×¦×ž× ×œ× ×™×™×ž×—×§×• ×ž×”×¢× ×Ÿ.")){writeProjectLibrary([]);renderProjectLibrary();showToast("×”×¨×©×™×ž×” ×”×ž×§×•×ž×™×ª × ×•×§×ª×”");}
+    });
     els.addRegionBtn.addEventListener("click",()=>newRegion());
     els.deleteRegionBtn.addEventListener("click",deleteRegion);els.duplicateRegionBtn.addEventListener("click",duplicateRegion);els.clearMaskBtn.addEventListener("click",clearMask);
     els.projectName.addEventListener("input",()=>setDirty(true));els.projectName.addEventListener("change",commitHistory);
@@ -740,7 +888,7 @@
     els.featherRange.addEventListener("input",e=>{const r=selectedRegion();if(!r)return;r.feather=Number(e.target.value);r.maskCache=null;r.avgLightness=null;els.featherOut.textContent=`${e.target.value} px`;setDirty(true);requestRender();});els.featherRange.addEventListener("change",commitHistory);
     els.regionVisible.addEventListener("change",e=>{const r=selectedRegion();if(!r)return;r.visible=e.target.checked;renderRegionList();setDirty(true);commitHistory();requestRender();});els.maskPreview.addEventListener("change",updateOverlay);
     els.eyedropperBtn.addEventListener("click",()=>setTool("eyedropper"));
-    document.querySelectorAll("[data-tool]").forEach(b=>b.addEventListener("click",()=>{if(!selectedRegion()&&!['pan','eyedropper'].includes(b.dataset.tool)){showToast("בחר או הוסף אזור קודם",true);return;}setTool(b.dataset.tool);}));
+    document.querySelectorAll("[data-tool]").forEach(b=>b.addEventListener("click",()=>{if(!selectedRegion()&&!['pan','eyedropper'].includes(b.dataset.tool)){showToast("×‘×—×¨ ××• ×”×•×¡×£ ××–×•×¨ ×§×•×“×",true);return;}setTool(b.dataset.tool);}));
     els.finishPolygonBtn.addEventListener("click",finishPolygon);
     els.brushSize.addEventListener("input",e=>{state.brushSize=Number(e.target.value);els.brushSizeOut.textContent=`${e.target.value} px`;});
     els.wandTolerance.addEventListener("input",e=>{state.wandTolerance=Number(e.target.value);els.wandToleranceOut.textContent=e.target.value;});
@@ -748,9 +896,9 @@
     els.undoBtn.addEventListener("click",()=>{if(state.historyIndex>0)restoreHistory(state.historyIndex-1);});els.redoBtn.addEventListener("click",()=>{if(state.historyIndex<state.history.length-1)restoreHistory(state.historyIndex+1);});
     els.exportPngBtn.addEventListener("click",exportPng);els.exportProjectBtn.addEventListener("click",exportProjectBackup);els.importProjectBtn.addEventListener("click",()=>els.projectInput.click());els.projectInput.addEventListener("change",e=>{importProjectBackup(e.target.files[0]);e.target.value="";});
     els.saveCloudBtn.addEventListener("click",saveCloud);els.saveAsCopyBtn.addEventListener("click",saveAsCopy);els.shareBtn.addEventListener("click",()=>showShare("view"));els.shareEditBtn.addEventListener("click",()=>showShare("edit"));
-    els.copyShareBtn.addEventListener("click",async()=>{try{await navigator.clipboard.writeText(els.shareUrl.value);showToast("הקישור הועתק");}catch{els.shareUrl.select();document.execCommand("copy");showToast("הקישור הועתק");}});
-    els.nativeShareBtn.addEventListener("click",async()=>{if(navigator.share){try{await navigator.share({title:currentProjectName(),url:els.shareUrl.value});}catch{}}else{showToast("שיתוף מובנה אינו נתמך בדפדפן הזה",true);}});
-    els.addVariantBtn.addEventListener("click",addVariant);els.compareBtn.addEventListener("click",showCompare);els.clearVariantsBtn.addEventListener("click",()=>{state.variants=[];els.compareBtn.disabled=true;els.compareGrid.innerHTML="";showToast("הגרסאות נוקו");});
+    els.copyShareBtn.addEventListener("click",async()=>{await copyText(els.shareUrl.value);showToast("×”×§×™×©×•×¨ ×”×•×¢×ª×§");});
+    els.nativeShareBtn.addEventListener("click",async()=>{if(navigator.share){try{await navigator.share({title:currentProjectName(),url:els.shareUrl.value});}catch{}}else{showToast("×©×™×ª×•×£ ×ž×•×‘× ×” ××™× ×• × ×ª×ž×š ×‘×“×¤×“×¤×Ÿ ×”×–×”",true);}});
+    els.addVariantBtn.addEventListener("click",addVariant);els.compareBtn.addEventListener("click",showCompare);els.clearVariantsBtn.addEventListener("click",()=>{state.variants=[];els.compareBtn.disabled=true;els.compareGrid.innerHTML="";showToast("×”×’×¨×¡××•×ª × ×•×§×•");});
 
     els.overlayCanvas.addEventListener("pointerdown",onPointerDown);els.overlayCanvas.addEventListener("pointermove",onPointerMove);els.overlayCanvas.addEventListener("pointerup",onPointerUp);els.overlayCanvas.addEventListener("pointercancel",onPointerUp);els.overlayCanvas.addEventListener("dblclick",e=>{if(state.tool==="polygon"){e.preventDefault();finishPolygon();}});
     els.canvasViewport.addEventListener("wheel",e=>{if(!state.sourceImage)return;if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(state.zoom*(e.deltaY<0?1.12:.89));}},{passive:false});
