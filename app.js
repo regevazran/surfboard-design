@@ -111,7 +111,7 @@
       return true;
     } catch (e) {
       console.warn("Could not write project library", e);
-      showToast("×”×“×¤×“×¤×Ÿ ×œ× ××¤×©×¨ ×œ×©×ž×•×¨ ××ª ×¨×©×™×ž×ª ×”×¤×¨×•×™×§×˜×™× ×”×ž×§×•×ž×™×ª", true);
+      showToast("\u05d4\u05d3\u05e4\u05d3\u05e4\u05df \u05dc\u05d0 \u05d0\u05e4\u05e9\u05e8 \u05dc\u05e9\u05de\u05d5\u05e8 \u05d0\u05ea \u05e8\u05e9\u05d9\u05de\u05ea \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8\u05d9\u05dd \u05d4\u05de\u05e7\u05d5\u05de\u05d9\u05ea", true);
       return false;
     }
   }
@@ -129,7 +129,7 @@
     const now = new Date().toISOString();
     const entry = {
       id,
-      name: name || existing?.name || "×¤×¨×•×™×§×˜ ×’×œ×©×Ÿ",
+      name: name || existing?.name || "\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d2\u05dc\u05e9\u05df",
       access: finalAccess,
       token: finalToken,
       updatedAt: now,
@@ -165,7 +165,7 @@
   }
 
   function openLibraryProject(entry) {
-    if (state.dirty && !confirm("×™×© ×©×™× ×•×™×™× ×©×œ× × ×©×ž×¨×• ×‘×¤×¨×•×™×§×˜ ×”× ×•×›×—×™. ×œ×¤×ª×•×— ×¤×¨×•×™×§×˜ ××—×¨ ×‘×›×œ ×–××ª?")) return;
+    if (state.dirty && !confirm("\u05d9\u05e9 \u05e9\u05d9\u05e0\u05d5\u05d9\u05d9\u05dd \u05e9\u05dc\u05d0 \u05e0\u05e9\u05de\u05e8\u05d5 \u05d1\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05e0\u05d5\u05db\u05d7\u05d9. \u05dc\u05e4\u05ea\u05d5\u05d7 \u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d0\u05d7\u05e8 \u05d1\u05db\u05dc \u05d6\u05d0\u05ea?")) return;
     location.href = projectEntryUrl(entry);
   }
 
@@ -177,26 +177,26 @@
     items.forEach(entry => {
       const row = document.createElement("div");
       row.className = `project-library-item${entry.id === state.projectId ? " active" : ""}`;
-      const accessLabel = entry.access === "edit" ? "×¢×¨×™×›×”" : "×¦×‘×™×¢×” ×‘×œ×‘×“";
+      const accessLabel = entry.access === "edit" ? "\u05e2\u05e8\u05d9\u05db\u05d4" : "\u05e6\u05d1\u05d9\u05e2\u05d4 \u05d1\u05dc\u05d1\u05d3";
       const time = formatProjectDate(entry.updatedAt);
       row.innerHTML = `
         <div class="project-library-main">
-          <strong>${escapeHtml(entry.name || "×¤×¨×•×™×§×˜ ×’×œ×©×Ÿ")}</strong>
+          <strong>${escapeHtml(entry.name || "\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d2\u05dc\u05e9\u05df")}</strong>
           <div class="project-library-meta">
             <span class="project-access-badge ${entry.access === "edit" ? "edit" : "view"}">${accessLabel}</span>
-            ${time ? `<span>×¢×•×“×›×Ÿ ×‘×¨×©×™×ž×”: ${escapeHtml(time)}</span>` : ""}
-            ${entry.id === state.projectId ? "<span>×¤×ª×•×— ×›×¢×ª</span>" : ""}
+            ${time ? `<span>\u05e2\u05d5\u05d3\u05db\u05df \u05d1\u05e8\u05e9\u05d9\u05de\u05d4: ${escapeHtml(time)}</span>` : ""}
+            ${entry.id === state.projectId ? "<span>\u05e4\u05ea\u05d5\u05d7 \u05db\u05e2\u05ea</span>" : ""}
           </div>
         </div>
         <div class="project-library-actions">
-          <button class="btn small primary" type="button" data-action="open">×¤×ª×—</button>
-          <button class="btn small" type="button" data-action="copy">×”×¢×ª×§ ×§×™×©×•×¨</button>
-          <button class="btn small danger-outline" type="button" data-action="forget">×”×¡×¨ ×ž×”×¨×©×™×ž×”</button>
+          <button class="btn small primary" type="button" data-action="open">\u05e4\u05ea\u05d7</button>
+          <button class="btn small" type="button" data-action="copy">\u05d4\u05e2\u05ea\u05e7 \u05e7\u05d9\u05e9\u05d5\u05e8</button>
+          <button class="btn small danger-outline" type="button" data-action="forget">\u05d4\u05e1\u05e8 \u05de\u05d4\u05e8\u05e9\u05d9\u05de\u05d4</button>
         </div>`;
       row.querySelector('[data-action="open"]').addEventListener("click", () => openLibraryProject(entry));
-      row.querySelector('[data-action="copy"]').addEventListener("click", async () => { await copyText(projectEntryUrl(entry)); showToast("×§×™×©×•×¨ ×”×¤×¨×•×™×§×˜ ×”×•×¢×ª×§"); });
+      row.querySelector('[data-action="copy"]').addEventListener("click", async () => { await copyText(projectEntryUrl(entry)); showToast("\u05e7\u05d9\u05e9\u05d5\u05e8 \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05d5\u05e2\u05ea\u05e7"); });
       row.querySelector('[data-action="forget"]').addEventListener("click", () => {
-        if (confirm("×œ×”×¡×™×¨ ××ª ×”×¤×¨×•×™×§×˜ ×ž×”×¨×©×™×ž×” ×‘×ž×›×©×™×¨ ×”×–×”? ×”×¤×¨×•×™×§×˜ ×¢×¦×ž×• ×œ× ×™×™×ž×—×§ ×ž×”×¢× ×Ÿ.")) forgetCloudProject(entry.id);
+        if (confirm("\u05dc\u05d4\u05e1\u05d9\u05e8 \u05d0\u05ea \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05de\u05d4\u05e8\u05e9\u05d9\u05de\u05d4 \u05d1\u05de\u05db\u05e9\u05d9\u05e8 \u05d4\u05d6\u05d4? \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05e2\u05e6\u05de\u05d5 \u05dc\u05d0 \u05d9\u05d9\u05de\u05d7\u05e7 \u05de\u05d4\u05e2\u05e0\u05df.")) forgetCloudProject(entry.id);
       });
       els.projectLibraryList.appendChild(row);
     });
@@ -210,7 +210,7 @@
 
   function openProjectFromPastedLink() {
     const raw = (els.projectLinkInput.value || "").trim();
-    if (!raw) { showToast("×”×“×‘×§ ×§×™×©×•×¨ ×œ×¤×¨×•×™×§×˜", true); return; }
+    if (!raw) { showToast("\u05d4\u05d3\u05d1\u05e7 \u05e7\u05d9\u05e9\u05d5\u05e8 \u05dc\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8", true); return; }
     try {
       const u = new URL(raw, location.href);
       const id = u.searchParams.get("p");
@@ -218,10 +218,10 @@
       const token = hash.get("t");
       const mode = u.searchParams.get("mode") || "colors";
       if (!id || !token) throw new Error("Missing project data");
-      if (state.dirty && !confirm("×™×© ×©×™× ×•×™×™× ×©×œ× × ×©×ž×¨×• ×‘×¤×¨×•×™×§×˜ ×”× ×•×›×—×™. ×œ×¤×ª×•×— ××ª ×”×§×™×©×•×¨ ×‘×›×œ ×–××ª?")) return;
+      if (state.dirty && !confirm("\u05d9\u05e9 \u05e9\u05d9\u05e0\u05d5\u05d9\u05d9\u05dd \u05e9\u05dc\u05d0 \u05e0\u05e9\u05de\u05e8\u05d5 \u05d1\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05e0\u05d5\u05db\u05d7\u05d9. \u05dc\u05e4\u05ea\u05d5\u05d7 \u05d0\u05ea \u05d4\u05e7\u05d9\u05e9\u05d5\u05e8 \u05d1\u05db\u05dc \u05d6\u05d0\u05ea?")) return;
       location.href = buildUrl(id, token, mode === "edit" ? "edit" : "colors");
     } catch (e) {
-      showToast("×”×§×™×©×•×¨ ××™× ×• × ×¨××” ×›×ž×• ×§×™×©×•×¨ ×ª×§×™×Ÿ ×©×œ ×¤×¨×•×™×§×˜", true);
+      showToast("\u05d4\u05e7\u05d9\u05e9\u05d5\u05e8 \u05d0\u05d9\u05e0\u05d5 \u05e0\u05e8\u05d0\u05d4 \u05db\u05de\u05d5 \u05e7\u05d9\u05e9\u05d5\u05e8 \u05ea\u05e7\u05d9\u05df \u05e9\u05dc \u05e4\u05e8\u05d5\u05d9\u05e7\u05d8", true);
     }
   }
 
@@ -230,14 +230,14 @@
     const browserKey = cfg.supabaseKey || cfg.supabaseAnonKey || "";
     if (cfg.supabaseUrl && browserKey && window.supabase?.createClient) {
       state.supabase = window.supabase.createClient(cfg.supabaseUrl, browserKey);
-      setCloudStatus("×¢× ×Ÿ ×ž×•×›×Ÿ", "ok");
+      setCloudStatus("\u05e2\u05e0\u05df \u05de\u05d5\u05db\u05df", "ok");
     } else {
-      setCloudStatus("×ž×¦×‘ ×ž×§×•×ž×™ â€” ×”×’×“×¨ Supabase ×œ×©×™×ª×•×£", "warn");
+      setCloudStatus("\u05de\u05e6\u05d1 \u05de\u05e7\u05d5\u05de\u05d9 \u2014 \u05d4\u05d2\u05d3\u05e8 Supabase \u05dc\u05e9\u05d9\u05ea\u05d5\u05e3", "warn");
     }
   }
 
   function currentProjectName() {
-    return (els.projectName.value || "×’×œ×©×Ÿ ×—×“×©").trim() || "×’×œ×©×Ÿ ×—×“×©";
+    return (els.projectName.value || "\u05d2\u05dc\u05e9\u05df \u05d7\u05d3\u05e9").trim() || "\u05d2\u05dc\u05e9\u05df \u05d7\u05d3\u05e9";
   }
 
   function updateAccessUi() {
@@ -256,12 +256,12 @@
     const colorOnly = state.mode === "colors" || state.access === "view";
     document.body.classList.toggle("color-only", colorOnly);
     if (colorOnly) {
-      els.projectSubtitle.textContent = "×§×™×©×•×¨ ×œ×¦×‘×™×¢×” ×‘×œ×‘×“ â€” ×”×ž×§×•×¨ ××™× ×• ×ž×©×ª× ×”";
+      els.projectSubtitle.textContent = "\u05e7\u05d9\u05e9\u05d5\u05e8 \u05dc\u05e6\u05d1\u05d9\u05e2\u05d4 \u05d1\u05dc\u05d1\u05d3 \u2014 \u05d4\u05de\u05e7\u05d5\u05e8 \u05d0\u05d9\u05e0\u05d5 \u05de\u05e9\u05ea\u05e0\u05d4";
       setTool("pan");
     } else if (state.projectId) {
-      els.projectSubtitle.textContent = state.access === "edit" ? "×¤×¨×•×™×§×˜ ×¢× ×Ÿ â€” ×”×¨×©××ª ×¢×¨×™×›×”" : "×¤×¨×•×™×§×˜ ×ž×§×•×ž×™";
+      els.projectSubtitle.textContent = state.access === "edit" ? "\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05e2\u05e0\u05df \u2014 \u05d4\u05e8\u05e9\u05d0\u05ea \u05e2\u05e8\u05d9\u05db\u05d4" : "\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05de\u05e7\u05d5\u05de\u05d9";
     } else {
-      els.projectSubtitle.textContent = "×¤×¨×•×™×§×˜ ×ž×§×•×ž×™";
+      els.projectSubtitle.textContent = "\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05de\u05e7\u05d5\u05de\u05d9";
     }
     renderRegionEditor();
   }
@@ -269,7 +269,7 @@
   function setDirty(v = true) {
     state.dirty = v;
     if (state.access === "edit" && state.projectId) {
-      setCloudStatus(v ? "×©×™× ×•×™×™× ×©×œ× × ×©×ž×¨×•" : "×©×ž×•×¨ ×‘×¢× ×Ÿ", v ? "warn" : "ok");
+      setCloudStatus(v ? "\u05e9\u05d9\u05e0\u05d5\u05d9\u05d9\u05dd \u05e9\u05dc\u05d0 \u05e0\u05e9\u05de\u05e8\u05d5" : "\u05e9\u05de\u05d5\u05e8 \u05d1\u05e2\u05e0\u05df", v ? "warn" : "ok");
     }
   }
 
@@ -280,8 +280,8 @@
     return c;
   }
 
-  function newRegion(name = `××–×•×¨ ${state.regions.length + 1}`, color = "#A9D6E5") {
-    if (!state.sourceImage) { showToast("×™×© ×œ×”×¢×œ×•×ª ×ª×ž×•× ×” ×œ×¤× ×™ ×™×¦×™×¨×ª ××–×•×¨", true); return null; }
+  function newRegion(name = `\u05d0\u05d6\u05d5\u05e8 ${state.regions.length + 1}`, color = "#A9D6E5") {
+    if (!state.sourceImage) { showToast("\u05d9\u05e9 \u05dc\u05d4\u05e2\u05dc\u05d5\u05ea \u05ea\u05de\u05d5\u05e0\u05d4 \u05dc\u05e4\u05e0\u05d9 \u05d9\u05e6\u05d9\u05e8\u05ea \u05d0\u05d6\u05d5\u05e8", true); return null; }
     const maskCanvas = createMaskCanvas();
     const region = {
       id: uuid(), name, color: color.toUpperCase(), visible: true, intensity: 1, feather: 0,
@@ -306,8 +306,8 @@
       item.className = `region-item${r.id === state.selectedRegionId ? " active" : ""}`;
       item.innerHTML = `
         <span class="swatch" style="background:${escapeHtml(r.color)}"></span>
-        <span class="region-title"><strong>${escapeHtml(r.name)}</strong><span>${r.visible ? "×¤×¢×™×œ" : "×ž×•×¡×ª×¨"}</span></span>
-        <span class="eye" aria-label="${r.visible ? "×”×¡×ª×¨" : "×”×¦×’"}">${r.visible ? "â—‰" : "â—‹"}</span>`;
+        <span class="region-title"><strong>${escapeHtml(r.name)}</strong><span>${r.visible ? "\u05e4\u05e2\u05d9\u05dc" : "\u05de\u05d5\u05e1\u05ea\u05e8"}</span></span>
+        <span class="eye" aria-label="${r.visible ? "\u05d4\u05e1\u05ea\u05e8" : "\u05d4\u05e6\u05d2"}">${r.visible ? "\u25c9" : "\u25cb"}</span>`;
       item.addEventListener("click", (e) => {
         const eye = e.target.closest(".eye");
         if (eye) {
@@ -350,13 +350,13 @@
 
   async function loadImageFile(file) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) { showToast("×”×§×•×‘×¥ ××™× ×• ×ª×ž×•× ×” × ×ª×ž×›×ª", true); return; }
+    if (!file.type.startsWith("image/")) { showToast("\u05d4\u05e7\u05d5\u05d1\u05e5 \u05d0\u05d9\u05e0\u05d5 \u05ea\u05de\u05d5\u05e0\u05d4 \u05e0\u05ea\u05de\u05db\u05ea", true); return; }
     const rawUrl = await fileToDataUrl(file);
     const compressed = await normalizeImageDataUrl(rawUrl, MAX_IMAGE_SIDE, 0.94);
     await loadImageDataUrl(compressed, { resetProject: true });
-    els.projectName.value = file.name.replace(/\.[^.]+$/, "") || "×’×œ×©×Ÿ ×—×“×©";
+    els.projectName.value = file.name.replace(/\.[^.]+$/, "") || "\u05d2\u05dc\u05e9\u05df \u05d7\u05d3\u05e9";
     setDirty(true);
-    showToast("×”×ª×ž×•× ×” × ×˜×¢× ×”. ×›×¢×ª ×”×•×¡×£ ××–×•×¨×™× ×•×¡×ž×Ÿ ××•×ª×.");
+    showToast("\u05d4\u05ea\u05de\u05d5\u05e0\u05d4 \u05e0\u05d8\u05e2\u05e0\u05d4. \u05db\u05e2\u05ea \u05d4\u05d5\u05e1\u05e3 \u05d0\u05d6\u05d5\u05e8\u05d9\u05dd \u05d5\u05e1\u05de\u05df \u05d0\u05d5\u05ea\u05dd.");
   }
 
   function fileToDataUrl(file) {
@@ -638,7 +638,7 @@
       if(x>0)add(p-1); if(x<w-1)add(p+1); if(y>0)add(p-w); if(y<h-1)add(p+w);
     }
     r.maskCtx.putImageData(img,0,0); invalidateMask(r); setDirty(true); commitHistory(); requestRender(); updateOverlay();
-    showToast(`Magic Wand ×¡×™×ž×Ÿ ${head.toLocaleString()} ×¤×™×§×¡×œ×™× ×©× ×‘×“×§×•`);
+    showToast(`Magic Wand \u05e1\u05d9\u05de\u05df ${head.toLocaleString()} \u05e4\u05d9\u05e7\u05e1\u05dc\u05d9\u05dd \u05e9\u05e0\u05d1\u05d3\u05e7\u05d5`);
   }
 
   function sampleColor(point) {
@@ -648,7 +648,7 @@
     const hex=`#${[pix[0],pix[1],pix[2]].map(v=>v.toString(16).padStart(2,"0")).join("")}`.toUpperCase();
     const r=selectedRegion();
     if (r) { r.color=hex; els.regionColor.value=hex; els.regionHex.value=hex; renderRegionList(); setDirty(true); commitHistory(); requestRender(); }
-    else { navigator.clipboard?.writeText(hex); showToast(`${hex} ×”×•×¢×ª×§`); }
+    else { navigator.clipboard?.writeText(hex); showToast(`${hex} \u05d4\u05d5\u05e2\u05ea\u05e7`); }
     setTool("pan");
   }
 
@@ -668,12 +668,12 @@
   async function restoreProject(projectData, imageDataUrl, { keepCloud = true } = {}) {
     if (!imageDataUrl) throw new Error("Project has no image");
     await loadImageDataUrl(imageDataUrl,{resetProject:!keepCloud});
-    els.projectName.value=projectData.name||"×’×œ×©×Ÿ";
+    els.projectName.value=projectData.name||"\u05d2\u05dc\u05e9\u05df";
     state.regions=[];
     for (const rd of (projectData.regions||[])) {
       const maskCanvas=createMaskCanvas(); const maskCtx=maskCanvas.getContext("2d",{willReadFrequently:true});
       if (rd.mask) { const mi=await loadHtmlImage(rd.mask); maskCtx.drawImage(mi,0,0,state.width,state.height); }
-      state.regions.push({id:rd.id||uuid(),name:rd.name||"××–×•×¨",color:(rd.color||"#A9D6E5").toUpperCase(),visible:rd.visible!==false,intensity:rd.intensity??1,feather:rd.feather||0,maskCanvas,maskCtx,avgLightness:null,maskCache:null});
+      state.regions.push({id:rd.id||uuid(),name:rd.name||"\u05d0\u05d6\u05d5\u05e8",color:(rd.color||"#A9D6E5").toUpperCase(),visible:rd.visible!==false,intensity:rd.intensity??1,feather:rd.feather||0,maskCanvas,maskCtx,avgLightness:null,maskCache:null});
     }
     state.selectedRegionId=state.regions[0]?.id||null;
     state.history=[];state.historyIndex=-1;state.variants=[];state.polygonPoints=[];
@@ -722,12 +722,12 @@
   function safeFilename(s){return s.replace(/[\\/:*?"<>|]+/g,"-").trim()||"surfboard";}
 
   function exportProjectBackup(){
-    if(!state.sourceImage)return;const obj=serializeProject(true);const blob=new Blob([JSON.stringify(obj)],{type:"application/json"});downloadBlob(blob,`${safeFilename(currentProjectName())}.surfboard.json`);showToast("×§×•×‘×¥ ×’×™×‘×•×™ × ×•×¦×¨");
+    if(!state.sourceImage)return;const obj=serializeProject(true);const blob=new Blob([JSON.stringify(obj)],{type:"application/json"});downloadBlob(blob,`${safeFilename(currentProjectName())}.surfboard.json`);showToast("\u05e7\u05d5\u05d1\u05e5 \u05d2\u05d9\u05d1\u05d5\u05d9 \u05e0\u05d5\u05e6\u05e8");
   }
 
   async function importProjectBackup(file){
-    try{const text=await file.text();const obj=JSON.parse(text);if(!obj.imageData||!Array.isArray(obj.regions))throw new Error("Invalid project");state.projectId=null;state.editToken=null;state.viewToken=null;state.currentToken=null;state.access="local";state.mode="edit";await restoreProject(obj,obj.imageData,{keepCloud:false});showToast("×”×¤×¨×•×™×§×˜ × ×˜×¢×Ÿ ×ž×”×’×™×‘×•×™");}
-    catch(e){console.error(e);showToast("×œ× × ×™×ª×Ÿ ×œ×§×¨×•× ××ª ×§×•×‘×¥ ×”×¤×¨×•×™×§×˜",true);}
+    try{const text=await file.text();const obj=JSON.parse(text);if(!obj.imageData||!Array.isArray(obj.regions))throw new Error("Invalid project");state.projectId=null;state.editToken=null;state.viewToken=null;state.currentToken=null;state.access="local";state.mode="edit";await restoreProject(obj,obj.imageData,{keepCloud:false});showToast("\u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05e0\u05d8\u05e2\u05df \u05de\u05d4\u05d2\u05d9\u05d1\u05d5\u05d9");}
+    catch(e){console.error(e);showToast("\u05dc\u05d0 \u05e0\u05d9\u05ea\u05df \u05dc\u05e7\u05e8\u05d5\u05d0 \u05d0\u05ea \u05e7\u05d5\u05d1\u05e5 \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8",true);}
   }
 
   function cloudPayload(){return serializeProject(false);}
@@ -746,7 +746,7 @@
   async function createCloudProject({switchToNew=true}={}){
     if(!state.supabase)throw new Error("Supabase is not configured");if(!state.sourceImage)throw new Error("No image");
     const editToken=uuid()+uuid(), viewToken=await deriveViewToken(editToken); const image=await ensureCloudImage();
-    setCloudStatus("×©×•×ž×¨ ×‘×¢× ×Ÿâ€¦","warn");
+    setCloudStatus("\u05e9\u05d5\u05de\u05e8 \u05d1\u05e2\u05e0\u05df\u2026","warn");
     const {data,error}=await state.supabase.rpc("create_surfboard_project",{p_edit_token:editToken,p_view_token:viewToken,p_image_data:image,p_project_data:cloudPayload()});
     if(error)throw error;
     const id=typeof data==="string"?data:(Array.isArray(data)?data[0]?.create_surfboard_project:data);
@@ -756,34 +756,34 @@
       setDirty(false);history.replaceState(null,"",buildUrl(id,editToken,"edit"));updateAccessUi();
       rememberCloudProject({id,name:currentProjectName(),access:"edit",token:editToken});
     }
-    setCloudStatus("×©×ž×•×¨ ×‘×¢× ×Ÿ","ok");
+    setCloudStatus("\u05e9\u05de\u05d5\u05e8 \u05d1\u05e2\u05e0\u05df","ok");
     return {id,editToken,viewToken};
   }
 
   async function saveCloud(){
     try{
       if(state.access==="view")throw new Error("View-only link");
-      if(!state.projectId){await createCloudProject();showToast("×”×¤×¨×•×™×§×˜ × ×©×ž×¨ ×‘×¢× ×Ÿ");return;}
+      if(!state.projectId){await createCloudProject();showToast("\u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05e0\u05e9\u05de\u05e8 \u05d1\u05e2\u05e0\u05df");return;}
       if(!state.editToken)throw new Error("Missing edit token");
-      setCloudStatus("×©×•×ž×¨ ×‘×¢× ×Ÿâ€¦","warn");
+      setCloudStatus("\u05e9\u05d5\u05de\u05e8 \u05d1\u05e2\u05e0\u05df\u2026","warn");
       const {data,error}=await state.supabase.rpc("save_surfboard_project",{p_id:state.projectId,p_edit_token:state.editToken,p_project_data:cloudPayload()});
-      if(error)throw error;if(data!==true)throw new Error("Save rejected");setDirty(false);rememberCloudProject();showToast("×”×©×™× ×•×™×™× × ×©×ž×¨×• ×‘×¢× ×Ÿ");
-    }catch(e){console.error(e);setCloudStatus("×©×’×™××ª ×©×ž×™×¨×”","err");showToast(cloudErrorMessage(e),true);}
+      if(error)throw error;if(data!==true)throw new Error("Save rejected");setDirty(false);rememberCloudProject();showToast("\u05d4\u05e9\u05d9\u05e0\u05d5\u05d9\u05d9\u05dd \u05e0\u05e9\u05de\u05e8\u05d5 \u05d1\u05e2\u05e0\u05df");
+    }catch(e){console.error(e);setCloudStatus("\u05e9\u05d2\u05d9\u05d0\u05ea \u05e9\u05de\u05d9\u05e8\u05d4","err");showToast(cloudErrorMessage(e),true);}
   }
 
   function cloudErrorMessage(e){
     const msg=String(e?.message||e||"");
     const code=String(e?.code||"");
     if(code==="PGRST202" || /could not find the function|schema cache|function .* does not exist/i.test(msg)){
-      return "Supabase ×œ× ×ž×›×™×¨ ×¢×“×™×™×Ÿ ××ª ×¤×•× ×§×¦×™×•×ª ×”××¤×œ×™×§×¦×™×”. ×”×¨×¥ ×ž×—×“×© ××ª ×›×œ supabase-setup.sql ×‘-SQL Editor, ×”×ž×ª×Ÿ ×›×ž×” ×©× ×™×•×ª ×•× ×¡×” ×©×•×‘.";
+      return "Supabase \u05dc\u05d0 \u05de\u05db\u05d9\u05e8 \u05e2\u05d3\u05d9\u05d9\u05df \u05d0\u05ea \u05e4\u05d5\u05e0\u05e7\u05e6\u05d9\u05d5\u05ea \u05d4\u05d0\u05e4\u05dc\u05d9\u05e7\u05e6\u05d9\u05d4. \u05d4\u05e8\u05e5 \u05de\u05d7\u05d3\u05e9 \u05d0\u05ea \u05db\u05dc supabase-setup.sql \u05d1-SQL Editor, \u05d4\u05de\u05ea\u05df \u05db\u05de\u05d4 \u05e9\u05e0\u05d9\u05d5\u05ea \u05d5\u05e0\u05e1\u05d4 \u05e9\u05d5\u05d1.";
     }
-    if(msg.includes("Failed to fetch"))return "×œ× × ×™×ª×Ÿ ×œ×”×ª×—×‘×¨ ×œ-Supabase. ×‘×“×•×§ ××ª config.js ×•××ª ×”×—×™×‘×•×¨ ×œ××™× ×˜×¨× ×˜.";
-    if(msg.includes("View-only"))return "×–×”×• ×§×™×©×•×¨ ×œ×¦×‘×™×¢×” ×‘×œ×‘×“. × ×™×ª×Ÿ ×œ×©×ž×•×¨ ×›×¢×•×ª×§ ×—×“×©.";
-    return `×©×’×™××ª ×¢× ×Ÿ${code ? ` (${code})` : ""}: ${msg}`;
+    if(msg.includes("Failed to fetch"))return "\u05dc\u05d0 \u05e0\u05d9\u05ea\u05df \u05dc\u05d4\u05ea\u05d7\u05d1\u05e8 \u05dc-Supabase. \u05d1\u05d3\u05d5\u05e7 \u05d0\u05ea config.js \u05d5\u05d0\u05ea \u05d4\u05d7\u05d9\u05d1\u05d5\u05e8 \u05dc\u05d0\u05d9\u05e0\u05d8\u05e8\u05e0\u05d8.";
+    if(msg.includes("View-only"))return "\u05d6\u05d4\u05d5 \u05e7\u05d9\u05e9\u05d5\u05e8 \u05dc\u05e6\u05d1\u05d9\u05e2\u05d4 \u05d1\u05dc\u05d1\u05d3. \u05e0\u05d9\u05ea\u05df \u05dc\u05e9\u05de\u05d5\u05e8 \u05db\u05e2\u05d5\u05ea\u05e7 \u05d7\u05d3\u05e9.";
+    return `\u05e9\u05d2\u05d9\u05d0\u05ea \u05e2\u05e0\u05df${code ? ` (${code})` : ""}: ${msg}`;
   }
 
   async function saveAsCopy(){
-    try{await createCloudProject({switchToNew:true});rememberCloudProject();showToast("× ×•×¦×¨ ×¢×•×ª×§ ×—×“×© ×¢× ×”×¨×©××ª ×¢×¨×™×›×”");}
+    try{await createCloudProject({switchToNew:true});rememberCloudProject();showToast("\u05e0\u05d5\u05e6\u05e8 \u05e2\u05d5\u05ea\u05e7 \u05d7\u05d3\u05e9 \u05e2\u05dd \u05d4\u05e8\u05e9\u05d0\u05ea \u05e2\u05e8\u05d9\u05db\u05d4");}
     catch(e){console.error(e);showToast(cloudErrorMessage(e),true);}
   }
 
@@ -806,11 +806,11 @@
       if(kind==="edit"){
         if(state.access!=="edit"||!state.editToken)throw new Error("No edit access");
         url=buildUrl(state.projectId,state.editToken,"edit");
-        els.shareDialogText.textContent="×”×§×™×©×•×¨ × ×•×ª×Ÿ ×”×¨×©××ª ×¢×¨×™×›×” ×ž×œ××” ×©×œ ×”××–×•×¨×™× ×•×”×¦×‘×¢×™×. ×©×ª×£ ××•×ª×• ×¨×§ ×¢× ×ž×™ ×©×¦×¨×™×š ×œ×¢×¨×•×š ××ª ×”×¤×¨×•×™×§×˜.";
+        els.shareDialogText.textContent="\u05d4\u05e7\u05d9\u05e9\u05d5\u05e8 \u05e0\u05d5\u05ea\u05df \u05d4\u05e8\u05e9\u05d0\u05ea \u05e2\u05e8\u05d9\u05db\u05d4 \u05de\u05dc\u05d0\u05d4 \u05e9\u05dc \u05d4\u05d0\u05d6\u05d5\u05e8\u05d9\u05dd \u05d5\u05d4\u05e6\u05d1\u05e2\u05d9\u05dd. \u05e9\u05ea\u05e3 \u05d0\u05d5\u05ea\u05d5 \u05e8\u05e7 \u05e2\u05dd \u05de\u05d9 \u05e9\u05e6\u05e8\u05d9\u05da \u05dc\u05e2\u05e8\u05d5\u05da \u05d0\u05ea \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8.";
       }else{
         if(!state.viewToken)throw new Error("No view token");
         url=buildUrl(state.projectId,state.viewToken,"colors");
-        els.shareDialogText.textContent="×”×§×™×©×•×¨ ×ž××¤×©×¨ ×œ×©×—×§ ×¢× ×”×¦×‘×¢×™× ×•×œ×™×™×¦× ×ª×ž×•× ×”, ××š ××™× ×• ×™×›×•×œ ×œ×©×ž×•×¨ ×ž×¢×œ ×”×¤×¨×•×™×§×˜ ×”×ž×§×•×¨×™.";
+        els.shareDialogText.textContent="\u05d4\u05e7\u05d9\u05e9\u05d5\u05e8 \u05de\u05d0\u05e4\u05e9\u05e8 \u05dc\u05e9\u05d7\u05e7 \u05e2\u05dd \u05d4\u05e6\u05d1\u05e2\u05d9\u05dd \u05d5\u05dc\u05d9\u05d9\u05e6\u05d0 \u05ea\u05de\u05d5\u05e0\u05d4, \u05d0\u05da \u05d0\u05d9\u05e0\u05d5 \u05d9\u05db\u05d5\u05dc \u05dc\u05e9\u05de\u05d5\u05e8 \u05de\u05e2\u05dc \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d4\u05de\u05e7\u05d5\u05e8\u05d9.";
       }
       els.shareUrl.value=url;els.shareDialog.showModal();
     }catch(e){console.error(e);showToast(cloudErrorMessage(e),true);}
@@ -819,34 +819,34 @@
   async function loadCloudFromUrl(){
     const p=new URLSearchParams(location.search);const id=p.get("p");if(!id)return;
     const hash=new URLSearchParams(location.hash.replace(/^#/,""));const token=hash.get("t");const mode=p.get("mode")||"colors";
-    if(!token){showToast("×‘×§×™×©×•×¨ ×—×¡×¨ ×ž×¤×ª×— ×’×™×©×”",true);return;}
-    if(!state.supabase){showToast("×”×¤×¨×•×™×§×˜ ×ž×§×•×©×¨ ×œ×¢× ×Ÿ, ××š Supabase ×œ× ×”×•×’×“×¨ ×‘-config.js",true);return;}
-    setCloudStatus("×˜×•×¢×Ÿ ×ž×”×¢× ×Ÿâ€¦","warn");
+    if(!token){showToast("\u05d1\u05e7\u05d9\u05e9\u05d5\u05e8 \u05d7\u05e1\u05e8 \u05de\u05e4\u05ea\u05d7 \u05d2\u05d9\u05e9\u05d4",true);return;}
+    if(!state.supabase){showToast("\u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05de\u05e7\u05d5\u05e9\u05e8 \u05dc\u05e2\u05e0\u05df, \u05d0\u05da Supabase \u05dc\u05d0 \u05d4\u05d5\u05d2\u05d3\u05e8 \u05d1-config.js",true);return;}
+    setCloudStatus("\u05d8\u05d5\u05e2\u05df \u05de\u05d4\u05e2\u05e0\u05df\u2026","warn");
     const {data,error}=await state.supabase.rpc("get_surfboard_project",{p_id:id,p_token:token});
-    if(error){console.error(error);showToast(cloudErrorMessage(error),true);setCloudStatus("×©×’×™××ª ×˜×¢×™× ×”","err");return;}
-    const row=Array.isArray(data)?data[0]:data;if(!row){showToast("×”×§×™×©×•×¨ ××™× ×• ×ª×§×™×Ÿ ××• ×©××™×Ÿ ×”×¨×©××” ×œ×¤×¨×•×™×§×˜",true);setCloudStatus("××™×Ÿ ×”×¨×©××”","err");return;}
+    if(error){console.error(error);showToast(cloudErrorMessage(error),true);setCloudStatus("\u05e9\u05d2\u05d9\u05d0\u05ea \u05d8\u05e2\u05d9\u05e0\u05d4","err");return;}
+    const row=Array.isArray(data)?data[0]:data;if(!row){showToast("\u05d4\u05e7\u05d9\u05e9\u05d5\u05e8 \u05d0\u05d9\u05e0\u05d5 \u05ea\u05e7\u05d9\u05df \u05d0\u05d5 \u05e9\u05d0\u05d9\u05df \u05d4\u05e8\u05e9\u05d0\u05d4 \u05dc\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8",true);setCloudStatus("\u05d0\u05d9\u05df \u05d4\u05e8\u05e9\u05d0\u05d4","err");return;}
     state.projectId=id;state.currentToken=token;state.access=row.access_level||"view";state.mode=state.access==="view"?"colors":mode;
     state.editToken=state.access==="edit"?token:null;state.viewToken=state.access==="view"?token:(state.access==="edit"?await deriveViewToken(token):null);
     await restoreProject(row.project_data,row.image_data,{keepCloud:true});
     state.projectId=id;state.currentToken=token;state.access=row.access_level||"view";state.mode=state.access==="view"?"colors":mode;state.editToken=state.access==="edit"?token:null;state.viewToken=state.access==="view"?token:(state.access==="edit"?await deriveViewToken(token):null);
-    setDirty(false);setCloudStatus(state.access==="edit"?"×©×ž×•×¨ ×‘×¢× ×Ÿ":"×§×™×©×•×¨ ×œ×¦×‘×™×¢×” ×‘×œ×‘×“","ok");updateAccessUi();
+    setDirty(false);setCloudStatus(state.access==="edit"?"\u05e9\u05de\u05d5\u05e8 \u05d1\u05e2\u05e0\u05df":"\u05e7\u05d9\u05e9\u05d5\u05e8 \u05dc\u05e6\u05d1\u05d9\u05e2\u05d4 \u05d1\u05dc\u05d1\u05d3","ok");updateAccessUi();
     rememberCloudProject({id:state.projectId,name:currentProjectName(),access:state.access,token:state.access==="edit"?state.editToken:state.viewToken});
-    showToast("×”×¤×¨×•×™×§×˜ × ×˜×¢×Ÿ ×ž×”×¢× ×Ÿ");
+    showToast("\u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05e0\u05d8\u05e2\u05df \u05de\u05d4\u05e2\u05e0\u05df");
   }
 
   function addVariant(){
     if(!state.sourceImage)return;requestRender(true).then(()=>{
       if(state.variants.length>=4)state.variants.shift();
-      state.variants.push({name:`×’×¨×¡×” ${state.variants.length+1}`,dataUrl:els.renderCanvas.toDataURL("image/png")});
-      els.compareBtn.disabled=false;showToast("×”×’×¨×¡×” × ×•×¡×¤×” ×œ×”×©×•×•××”");
+      state.variants.push({name:`\u05d2\u05e8\u05e1\u05d4 ${state.variants.length+1}`,dataUrl:els.renderCanvas.toDataURL("image/png")});
+      els.compareBtn.disabled=false;showToast("\u05d4\u05d2\u05e8\u05e1\u05d4 \u05e0\u05d5\u05e1\u05e4\u05d4 \u05dc\u05d4\u05e9\u05d5\u05d5\u05d0\u05d4");
     });
   }
 
   function showCompare(){
     els.compareGrid.innerHTML="";
-    if(!state.variants.length){els.compareGrid.innerHTML='<p class="empty-note">×¢×“×™×™×Ÿ ×œ× × ×©×ž×¨×• ×’×¨×¡××•×ª ×œ×”×©×•×•××”.</p>';}
+    if(!state.variants.length){els.compareGrid.innerHTML='<p class="empty-note">\u05e2\u05d3\u05d9\u05d9\u05df \u05dc\u05d0 \u05e0\u05e9\u05de\u05e8\u05d5 \u05d2\u05e8\u05e1\u05d0\u05d5\u05ea \u05dc\u05d4\u05e9\u05d5\u05d5\u05d0\u05d4.</p>';}
     state.variants.forEach((v,i)=>{
-      const card=document.createElement("div");card.className="compare-card";card.innerHTML=`<img src="${v.dataUrl}" alt="${escapeHtml(v.name)}"><input class="text-input" value="${escapeHtml(v.name)}" aria-label="×©× ×’×¨×¡×”">`;
+      const card=document.createElement("div");card.className="compare-card";card.innerHTML=`<img src="${v.dataUrl}" alt="${escapeHtml(v.name)}"><input class="text-input" value="${escapeHtml(v.name)}" aria-label="\u05e9\u05dd \u05d2\u05e8\u05e1\u05d4">`;
       card.querySelector("input").addEventListener("input",e=>v.name=e.target.value);els.compareGrid.appendChild(card);
     });
     els.compareDialog.showModal();
@@ -861,9 +861,9 @@
   function deleteRegion(){const i=state.regions.findIndex(r=>r.id===state.selectedRegionId);if(i<0)return;state.regions.splice(i,1);state.selectedRegionId=state.regions[Math.max(0,i-1)]?.id||null;renderRegionList();renderRegionEditor();setDirty(true);commitHistory();requestRender();updateOverlay();}
 
   function resetApp(){
-    if(state.dirty&&!confirm("×™×© ×©×™× ×•×™×™× ×©×œ× × ×©×ž×¨×•. ×œ×”×ª×—×™×œ ×¤×¨×•×™×§×˜ ×—×“×©?"))return;
+    if(state.dirty&&!confirm("\u05d9\u05e9 \u05e9\u05d9\u05e0\u05d5\u05d9\u05d9\u05dd \u05e9\u05dc\u05d0 \u05e0\u05e9\u05de\u05e8\u05d5. \u05dc\u05d4\u05ea\u05d7\u05d9\u05dc \u05e4\u05e8\u05d5\u05d9\u05e7\u05d8 \u05d7\u05d3\u05e9?"))return;
     Object.assign(state,{imageDataUrl:null,sourceImage:null,sourcePixels:null,width:0,height:0,regions:[],selectedRegionId:null,polygonPoints:[],history:[],historyIndex:-1,variants:[],projectId:null,editToken:null,viewToken:null,currentToken:null,access:"local",mode:"edit",dirty:false});
-    els.canvasStage.hidden=true;els.emptyState.hidden=false;els.projectName.value="×’×œ×©×Ÿ ×—×“×©";history.replaceState(null,"",baseUrl());renderRegionList();renderRegionEditor();updateAccessUi();setCloudStatus(state.supabase?"×¢× ×Ÿ ×ž×•×›×Ÿ":"×ž×¦×‘ ×ž×§×•×ž×™ â€” ×”×’×“×¨ Supabase ×œ×©×™×ª×•×£",state.supabase?"ok":"warn");
+    els.canvasStage.hidden=true;els.emptyState.hidden=false;els.projectName.value="\u05d2\u05dc\u05e9\u05df \u05d7\u05d3\u05e9";history.replaceState(null,"",baseUrl());renderRegionList();renderRegionEditor();updateAccessUi();setCloudStatus(state.supabase?"\u05e2\u05e0\u05df \u05de\u05d5\u05db\u05df":"\u05de\u05e6\u05d1 \u05de\u05e7\u05d5\u05de\u05d9 \u2014 \u05d4\u05d2\u05d3\u05e8 Supabase \u05dc\u05e9\u05d9\u05ea\u05d5\u05e3",state.supabase?"ok":"warn");
   }
 
   function bindEvents(){
@@ -875,7 +875,7 @@
     els.projectLinkInput.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();openProjectFromPastedLink();}});
     els.clearProjectLibraryBtn.addEventListener("click",()=>{
       if(!readProjectLibrary().length)return;
-      if(confirm("×œ× ×§×•×ª ××ª ×›×œ ×¨×©×™×ž×ª ×”×¤×¨×•×™×§×˜×™× ×ž×”×ž×›×©×™×¨ ×”×–×”? ×”×¤×¨×•×™×§×˜×™× ×¢×¦×ž× ×œ× ×™×™×ž×—×§×• ×ž×”×¢× ×Ÿ.")){writeProjectLibrary([]);renderProjectLibrary();showToast("×”×¨×©×™×ž×” ×”×ž×§×•×ž×™×ª × ×•×§×ª×”");}
+      if(confirm("\u05dc\u05e0\u05e7\u05d5\u05ea \u05d0\u05ea \u05db\u05dc \u05e8\u05e9\u05d9\u05de\u05ea \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8\u05d9\u05dd \u05de\u05d4\u05de\u05db\u05e9\u05d9\u05e8 \u05d4\u05d6\u05d4? \u05d4\u05e4\u05e8\u05d5\u05d9\u05e7\u05d8\u05d9\u05dd \u05e2\u05e6\u05de\u05dd \u05dc\u05d0 \u05d9\u05d9\u05de\u05d7\u05e7\u05d5 \u05de\u05d4\u05e2\u05e0\u05df.")){writeProjectLibrary([]);renderProjectLibrary();showToast("\u05d4\u05e8\u05e9\u05d9\u05de\u05d4 \u05d4\u05de\u05e7\u05d5\u05de\u05d9\u05ea \u05e0\u05d5\u05e7\u05ea\u05d4");}
     });
     els.addRegionBtn.addEventListener("click",()=>newRegion());
     els.deleteRegionBtn.addEventListener("click",deleteRegion);els.duplicateRegionBtn.addEventListener("click",duplicateRegion);els.clearMaskBtn.addEventListener("click",clearMask);
@@ -888,7 +888,7 @@
     els.featherRange.addEventListener("input",e=>{const r=selectedRegion();if(!r)return;r.feather=Number(e.target.value);r.maskCache=null;r.avgLightness=null;els.featherOut.textContent=`${e.target.value} px`;setDirty(true);requestRender();});els.featherRange.addEventListener("change",commitHistory);
     els.regionVisible.addEventListener("change",e=>{const r=selectedRegion();if(!r)return;r.visible=e.target.checked;renderRegionList();setDirty(true);commitHistory();requestRender();});els.maskPreview.addEventListener("change",updateOverlay);
     els.eyedropperBtn.addEventListener("click",()=>setTool("eyedropper"));
-    document.querySelectorAll("[data-tool]").forEach(b=>b.addEventListener("click",()=>{if(!selectedRegion()&&!['pan','eyedropper'].includes(b.dataset.tool)){showToast("×‘×—×¨ ××• ×”×•×¡×£ ××–×•×¨ ×§×•×“×",true);return;}setTool(b.dataset.tool);}));
+    document.querySelectorAll("[data-tool]").forEach(b=>b.addEventListener("click",()=>{if(!selectedRegion()&&!['pan','eyedropper'].includes(b.dataset.tool)){showToast("\u05d1\u05d7\u05e8 \u05d0\u05d5 \u05d4\u05d5\u05e1\u05e3 \u05d0\u05d6\u05d5\u05e8 \u05e7\u05d5\u05d3\u05dd",true);return;}setTool(b.dataset.tool);}));
     els.finishPolygonBtn.addEventListener("click",finishPolygon);
     els.brushSize.addEventListener("input",e=>{state.brushSize=Number(e.target.value);els.brushSizeOut.textContent=`${e.target.value} px`;});
     els.wandTolerance.addEventListener("input",e=>{state.wandTolerance=Number(e.target.value);els.wandToleranceOut.textContent=e.target.value;});
@@ -896,9 +896,9 @@
     els.undoBtn.addEventListener("click",()=>{if(state.historyIndex>0)restoreHistory(state.historyIndex-1);});els.redoBtn.addEventListener("click",()=>{if(state.historyIndex<state.history.length-1)restoreHistory(state.historyIndex+1);});
     els.exportPngBtn.addEventListener("click",exportPng);els.exportProjectBtn.addEventListener("click",exportProjectBackup);els.importProjectBtn.addEventListener("click",()=>els.projectInput.click());els.projectInput.addEventListener("change",e=>{importProjectBackup(e.target.files[0]);e.target.value="";});
     els.saveCloudBtn.addEventListener("click",saveCloud);els.saveAsCopyBtn.addEventListener("click",saveAsCopy);els.shareBtn.addEventListener("click",()=>showShare("view"));els.shareEditBtn.addEventListener("click",()=>showShare("edit"));
-    els.copyShareBtn.addEventListener("click",async()=>{await copyText(els.shareUrl.value);showToast("×”×§×™×©×•×¨ ×”×•×¢×ª×§");});
-    els.nativeShareBtn.addEventListener("click",async()=>{if(navigator.share){try{await navigator.share({title:currentProjectName(),url:els.shareUrl.value});}catch{}}else{showToast("×©×™×ª×•×£ ×ž×•×‘× ×” ××™× ×• × ×ª×ž×š ×‘×“×¤×“×¤×Ÿ ×”×–×”",true);}});
-    els.addVariantBtn.addEventListener("click",addVariant);els.compareBtn.addEventListener("click",showCompare);els.clearVariantsBtn.addEventListener("click",()=>{state.variants=[];els.compareBtn.disabled=true;els.compareGrid.innerHTML="";showToast("×”×’×¨×¡××•×ª × ×•×§×•");});
+    els.copyShareBtn.addEventListener("click",async()=>{await copyText(els.shareUrl.value);showToast("\u05d4\u05e7\u05d9\u05e9\u05d5\u05e8 \u05d4\u05d5\u05e2\u05ea\u05e7");});
+    els.nativeShareBtn.addEventListener("click",async()=>{if(navigator.share){try{await navigator.share({title:currentProjectName(),url:els.shareUrl.value});}catch{}}else{showToast("\u05e9\u05d9\u05ea\u05d5\u05e3 \u05de\u05d5\u05d1\u05e0\u05d4 \u05d0\u05d9\u05e0\u05d5 \u05e0\u05ea\u05de\u05da \u05d1\u05d3\u05e4\u05d3\u05e4\u05df \u05d4\u05d6\u05d4",true);}});
+    els.addVariantBtn.addEventListener("click",addVariant);els.compareBtn.addEventListener("click",showCompare);els.clearVariantsBtn.addEventListener("click",()=>{state.variants=[];els.compareBtn.disabled=true;els.compareGrid.innerHTML="";showToast("\u05d4\u05d2\u05e8\u05e1\u05d0\u05d5\u05ea \u05e0\u05d5\u05e7\u05d5");});
 
     els.overlayCanvas.addEventListener("pointerdown",onPointerDown);els.overlayCanvas.addEventListener("pointermove",onPointerMove);els.overlayCanvas.addEventListener("pointerup",onPointerUp);els.overlayCanvas.addEventListener("pointercancel",onPointerUp);els.overlayCanvas.addEventListener("dblclick",e=>{if(state.tool==="polygon"){e.preventDefault();finishPolygon();}});
     els.canvasViewport.addEventListener("wheel",e=>{if(!state.sourceImage)return;if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(state.zoom*(e.deltaY<0?1.12:.89));}},{passive:false});
