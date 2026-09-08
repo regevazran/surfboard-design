@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <title>Surfboard Color Studio</title>
+  <meta name="description" content="כלי פשוט לסימון אזורים בתמונת גלשן, החלפת צבעים ושיתוף פרויקט דרך קישור." />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">S</div>
+      <div>
+        <h1>Surfboard Color Studio</h1>
+        <p id="projectSubtitle">פרויקט מקומי</p>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn ghost" id="newBtn" type="button">תמונה חדשה</button>
+      <button class="btn ghost" id="myProjectsBtn" type="button">הפרויקטים שלי</button>
+      <button class="btn ghost" id="importProjectBtn" type="button">ייבוא פרויקט</button>
+      <button class="btn ghost" id="exportProjectBtn" type="button">גיבוי פרויקט</button>
+      <button class="btn primary" id="saveCloudBtn" type="button">שמירה בענן</button>
+      <button class="btn accent" id="shareBtn" type="button">שיתוף לצביעה</button>
+      <button class="btn ghost" id="shareEditBtn" type="button">קישור עריכה</button>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <section class="panel project-panel">
+        <label class="field-label" for="projectName">שם הפרויקט</label>
+        <input class="text-input" id="projectName" type="text" value="גלשן חדש" maxlength="80" />
+
+        <div class="status-row">
+          <span class="status-dot" id="cloudDot"></span>
+          <span id="cloudStatus">מצב מקומי</span>
+        </div>
+
+        <div class="mini-grid">
+          <button class="btn small" id="uploadBtn" type="button">העלאת תמונה</button>
+          <button class="btn small" id="saveAsCopyBtn" type="button">שמירה כעותק</button>
+        </div>
+      </section>
+
+      <section class="panel regions-panel">
+        <div class="panel-head">
+          <h2>אזורים</h2>
+          <button class="icon-btn" id="addRegionBtn" type="button" title="הוספת אזור" aria-label="הוספת אזור">＋</button>
+        </div>
+        <div class="region-list" id="regionList"></div>
+        <p class="empty-note" id="regionsEmpty">הוסף אזור, תן לו שם וסמן אותו על התמונה.</p>
+      </section>
+
+      <section class="panel region-editor" id="regionEditor">
+        <div class="panel-head">
+          <h2>הגדרות אזור</h2>
+          <button class="icon-btn danger" id="deleteRegionBtn" type="button" title="מחיקת אזור" aria-label="מחיקת אזור">×</button>
+        </div>
+
+        <label class="field-label" for="regionName">שם האזור</label>
+        <input class="text-input" id="regionName" type="text" placeholder="למשל: Rails" maxlength="60" />
+
+        <div class="color-row">
+          <input id="regionColor" class="color-input" type="color" value="#a9d6e5" aria-label="צבע האזור" />
+          <input id="regionHex" class="text-input mono" type="text" value="#A9D6E5" maxlength="7" aria-label="קוד HEX" />
+          <button class="btn small" id="eyedropperBtn" type="button">דגימת צבע</button>
+        </div>
+
+        <div class="preset-wrap" aria-label="צבעים מוכנים">
+          <button class="preset" data-color="#A9D6E5" title="Light Powder Blue" style="--swatch:#A9D6E5"></button>
+          <button class="preset" data-color="#8FBFD0" title="Warm Dusty Blue" style="--swatch:#8FBFD0"></button>
+          <button class="preset" data-color="#7EA6B4" title="Soft Dusty Blue" style="--swatch:#7EA6B4"></button>
+          <button class="preset" data-color="#E5007E" title="Magenta" style="--swatch:#E5007E"></button>
+          <button class="preset" data-color="#8B1E2D" title="Deep Red" style="--swatch:#8B1E2D"></button>
+          <button class="preset" data-color="#FFFFFF" title="White" style="--swatch:#FFFFFF"></button>
+          <button class="preset dark" data-color="#111111" title="Black" style="--swatch:#111111"></button>
+        </div>
+
+        <label class="range-row" for="intensityRange">
+          <span>עוצמת צבע</span>
+          <output id="intensityOut">100%</output>
+        </label>
+        <input id="intensityRange" type="range" min="0" max="100" value="100" />
+
+        <label class="range-row" for="featherRange">
+          <span>ריכוך קצה</span>
+          <output id="featherOut">0 px</output>
+        </label>
+        <input id="featherRange" type="range" min="0" max="24" value="0" />
+
+        <div class="toggle-row">
+          <label><input id="regionVisible" type="checkbox" checked /> הצג צביעה</label>
+          <label><input id="maskPreview" type="checkbox" checked /> הצג מסכה</label>
+        </div>
+
+        <div class="mini-grid">
+          <button class="btn small" id="duplicateRegionBtn" type="button">שכפול אזור</button>
+          <button class="btn small" id="clearMaskBtn" type="button">ניקוי מסכה</button>
+        </div>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <div class="toolstrip" id="editTools">
+        <button class="tool-btn active" data-tool="pan" type="button" title="הזזה">הזזה</button>
+        <button class="tool-btn" data-tool="polygon" type="button" title="בחירת פוליגון">פוליגון</button>
+        <button class="tool-btn" data-tool="brush" type="button" title="מברשת">מברשת</button>
+        <button class="tool-btn" data-tool="eraser" type="button" title="מחק">מחק</button>
+        <button class="tool-btn" data-tool="wand" type="button" title="בחירת צבע רציף">Magic Wand</button>
+        <button class="tool-btn" data-tool="eyedropper" type="button" title="דגימת צבע מהתמונה">טפטפת</button>
+        <span class="divider"></span>
+        <button class="tool-btn" id="finishPolygonBtn" type="button" disabled>סיום פוליגון</button>
+        <button class="tool-btn" id="undoBtn" type="button" disabled>Undo</button>
+        <button class="tool-btn" id="redoBtn" type="button" disabled>Redo</button>
+      </div>
+
+      <div class="substrip" id="substrip">
+        <label class="compact-control">מברשת
+          <input id="brushSize" type="range" min="4" max="180" value="48" />
+          <output id="brushSizeOut">48 px</output>
+        </label>
+        <label class="compact-control">רגישות Wand
+          <input id="wandTolerance" type="range" min="2" max="120" value="35" />
+          <output id="wandToleranceOut">35</output>
+        </label>
+        <div class="zoom-controls">
+          <button class="icon-btn" id="zoomOutBtn" type="button" aria-label="הקטנה">−</button>
+          <button class="zoom-label" id="zoomResetBtn" type="button">100%</button>
+          <button class="icon-btn" id="zoomInBtn" type="button" aria-label="הגדלה">＋</button>
+          <button class="btn small" id="fitBtn" type="button">התאם למסך</button>
+        </div>
+      </div>
+
+      <div class="canvas-viewport" id="canvasViewport">
+        <div class="empty-state" id="emptyState">
+          <div class="upload-drop" id="uploadDrop">
+            <strong>העלה תמונת גלשן</strong>
+            <span>PNG או JPG. התמונה נשארת מקומית עד שתבחר שמירה בענן.</span>
+            <button class="btn primary" type="button" id="emptyUploadBtn">בחירת תמונה</button>
+          </div>
+        </div>
+
+        <div class="canvas-stage" id="canvasStage" hidden>
+          <canvas id="renderCanvas"></canvas>
+          <canvas id="overlayCanvas"></canvas>
+        </div>
+      </div>
+
+      <div class="bottom-actions">
+        <button class="btn" id="addVariantBtn" type="button">הוסף להשוואה</button>
+        <button class="btn" id="compareBtn" type="button">השוואת גרסאות</button>
+        <button class="btn primary" id="exportPngBtn" type="button">ייצוא PNG</button>
+      </div>
+    </main>
+  </div>
+
+  <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp" hidden />
+  <input id="projectInput" type="file" accept="application/json,.surfboard.json" hidden />
+
+
+  <dialog id="projectsDialog" class="dialog">
+    <form method="dialog" class="dialog-card projects-dialog-card">
+      <div class="dialog-head">
+        <div>
+          <h2>הפרויקטים שלי</h2>
+          <p>פרויקטי הענן שנפתחו או נשמרו בדפדפן הזה. הרשימה נשמרת מקומית במכשיר.</p>
+        </div>
+        <button class="icon-btn" value="cancel" aria-label="סגירה">×</button>
+      </div>
+
+      <div class="project-library-list" id="projectLibraryList"></div>
+      <p class="empty-note project-library-empty" id="projectLibraryEmpty">עדיין אין פרויקטים שמורים ברשימה במכשיר הזה.</p>
+
+      <div class="project-link-import">
+        <label class="field-label" for="projectLinkInput">פתיחת פרויקט מקישור במכשיר חדש</label>
+        <div class="share-row">
+          <input id="projectLinkInput" class="text-input mono" type="text" placeholder="הדבק כאן קישור עריכה או קישור לצביעה" />
+          <button class="btn" id="openProjectLinkBtn" type="button">פתח קישור</button>
+        </div>
+        <p class="empty-note">לאחר פתיחת קישור תקין, הפרויקט יתווסף אוטומטית לרשימה במכשיר הזה.</p>
+      </div>
+
+      <div class="dialog-actions project-library-footer">
+        <button class="btn danger-outline" id="clearProjectLibraryBtn" type="button">נקה את הרשימה במכשיר</button>
+        <button class="btn primary" value="cancel">סגירה</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="compareDialog" class="dialog">
+    <form method="dialog" class="dialog-card wide">
+      <div class="dialog-head">
+        <div>
+          <h2>השוואת גרסאות</h2>
+          <p>ניתן לשמור עד 4 גרסאות זמניות להשוואה.</p>
+        </div>
+        <button class="icon-btn" value="cancel" aria-label="סגירה">×</button>
+      </div>
+      <div class="compare-grid" id="compareGrid"></div>
+      <div class="dialog-actions">
+        <button class="btn" id="clearVariantsBtn" type="button">ניקוי גרסאות</button>
+        <button class="btn primary" value="cancel">סגירה</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="shareDialog" class="dialog">
+    <form method="dialog" class="dialog-card">
+      <div class="dialog-head">
+        <div>
+          <h2>קישור לשיתוף</h2>
+          <p id="shareDialogText">הקישור מאפשר שינוי צבעים וייצוא, בלי לשנות את הפרויקט המקורי.</p>
+        </div>
+        <button class="icon-btn" value="cancel" aria-label="סגירה">×</button>
+      </div>
+      <label class="field-label" for="shareUrl">כתובת</label>
+      <div class="share-row">
+        <input id="shareUrl" class="text-input mono" type="text" readonly />
+        <button class="btn primary" id="copyShareBtn" type="button">העתקה</button>
+      </div>
+      <div class="dialog-actions">
+        <button class="btn" id="nativeShareBtn" type="button">שיתוף מהמכשיר</button>
+        <button class="btn primary" value="cancel">סגירה</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Supabase is used only for cross-device cloud sharing. The editor itself works without it. -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js?v=1.3" charset="utf-8"></script>
+</body>
+</html>
